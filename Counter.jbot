@@ -1,0 +1,83 @@
+//#! name = Counter
+//#! uniq = Usernm_Counter
+//#! icon = gfx/invobjs/wood
+
+// Находим ВСЕ объекты в радиусе 100 тайлов.
+var objects = jGetObjects(100, jCoord(0,0),"gfx")
+jToConsole(objects.length);
+
+
+// Функция сортирует объекты по дальности от игрока. В начале будут ближайшие.
+function sortObjects(objects) {
+	objects.sort(function(a,b) {
+		if(a.position().dist(jMyCoords())>b.position().dist(jMyCoords())) return 1;
+		if(a.position().dist(jMyCoords())<b.position().dist(jMyCoords())) return -1;
+		if(a.position().dist(jMyCoords())==b.position().dist(jMyCoords())) return 0;
+	});
+	return objects;
+}
+// дефолтная функция для трепа в чат из jbotapi
+function sayArea(text) {
+	var chats = jGetChats();
+	for (var i = 0; i < chats.length; i++) {
+		if (chats[i].chatName().indexOf("Area Chat") >= 0) {
+			chats[i].sendMessage(text);
+			break;
+		}
+	}
+}
+// функция переводит число от 1 до 9999 в текстовую форму.
+function russianCounter(number){
+	var numbers = ["один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять", "ноль"];
+	var teens = ["одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать", "шестнадцать", "семнадцать", "восемнадцать", "девятнадцать"];
+	var tens = ["десять", "двадцать", "тридцать", "сорок", "пятьдесят", "шестьдесят", "семьдесят", "восемьдесят", "девяносто"];
+	var hundreds = ["сто", "двести", "триста", "четыреста", "пятьсот", "шестьсот", "семьсот", "восемьсот", "девятьсот"];
+	var thousands = ["одна", "две", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять"];
+	var result = ""
+	if ((number / 1000) > 0){
+		if (Math.floor(number/1000)>0){
+			result = result + thousands[Math.floor(number/1000)-1]
+		}
+		if (Math.floor(number/1000) == 1){
+			result = result + " тысяча"
+		}
+		if ((Math.floor(number/1000)>1)&&(Math.floor(number/1000)<5)){
+			result = result + " тысячи"
+		}
+		if (Math.floor(number/1000) > 5){
+			result = result + " тысяч"
+		}
+		number = number - (Math.floor(number/1000)*1000);
+	}
+	if ((Math.floor(number/100)>0)){
+		result = result +" "+hundreds[Math.floor(number/100)-1];
+		number = number - (Math.floor(number/100)*100);
+	}
+	if (result !==""){
+		result= result+" ";
+	}
+	if ((number>0)&&(number <10)){
+		result = result + numbers[number-1];
+	}
+	if ((number>10)&&(number <20)){
+		result = result + teens[number-11];
+	}
+	if (((number == 10)||(number>19))&&(number<100)){
+		if ((number>0)&&((number % 10) == 0)){
+			result = result + tens[Math.floor(number/10)-1];
+		}
+		if ((number % 10) !== 0){
+			result = result + tens[Math.floor(number/10)-1]+" "+numbers[(number % 10)-1];
+		}
+	}
+	return result;
+}
+
+objects = sortObjects(objects);
+
+// Перебираем объекты, красим красненьким, вещаем в чатик и ждем секунду. Повторяем пока в поле зрения не кончатся объекты.
+for (var i = 0; i < objects.length; i++){
+	objects[i].setOverlay(true);
+	sayArea(russianCounter(i+1));
+	jSleep(1000);
+}

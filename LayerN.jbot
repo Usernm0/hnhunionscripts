@@ -1,0 +1,120 @@
+//#! name = Lay stone NNN
+//#! uniq = usernm_Lay_stone
+
+function CheckMove(coord) {
+	while (!jMyCoords().equals(coord)){
+		jSleep(100);
+	}
+	while (jIsMoving()){
+		jSleep(100);
+	}
+}
+
+function InventoryItemConsume() {
+	var now = jGetWindow("Inventory").getInventories()[0].freeSlots();
+	while (now == jGetWindow("Inventory").getInventories()[0].freeSlots()){
+		jSleep(100);
+	}
+	return true;
+}
+
+function ResetCursor(){
+	if (!jIsCursor("arw")) {
+		jAbsClick(jCoord(0, 0), 3, 0);
+		jWaitCursor("arw");
+	}
+}
+
+function ChipStone(boulder) {
+	if (jPFMove(boulder.position().add(0, -22))<0) {
+		jToConsole("Не могу пройти");
+		jExit();
+	}
+	CheckMove(boulder.position().add(0, -22));
+	jDoClick(boulder.getID(), 3, 0);
+	jWaitPopup();
+	jSelectContextMenu("Chip stone")
+	jWaitMove()
+	jWaitStartProgress()
+	WaitFullInventory();
+	jAbsClick(jMyCoords().add(0,-5), 1, 0);
+	CheckMove(jMyCoords().add(0,-5), 1, 0);
+}
+
+function WaitFullInventory() {
+	while (0 !== jGetWindow("Inventory").getInventories()[0].freeSlots()){
+		jSleep(100);
+	}
+}
+
+function LayStone(coord, direction) {
+	if (jPFMove(jTilify(coord))<0) {
+		jToConsole("Не могу пройти");
+		jExit();
+	}
+	CheckMove(coord);
+	var tile = jGetTileType(jCoord(direction));
+	jToConsole("tile type = "+tile);
+	var abs_shift = jMyCoords().add(direction.mul(11));
+	var stones = jGetWindow("Inventory").getInventories()[0].getItems("stone").length;
+	while (stones > 0){
+		if ((tile == 9)||(tile == 13)){
+			jSendDoubleAction("stoneroad", "stone");
+			jWaitCursor("dig");
+			jOffsetClick(jCoord(0, 0), 1, 0);
+			InventoryItemConsume();
+			stones=stones-1;
+		}
+		abs_shift = jMyCoords().add(direction.mul(11));
+		ResetCursor();
+		jAbsClick(abs_shift, 1, 0);
+		CheckMove(abs_shift);
+		tile = jGetTileType(jCoord(0, 0));
+	}
+}
+
+
+if (!jHaveWindow("Inventory")){
+	jToggleInventory()
+    jWaitNewWindow("Inventory")
+}
+var direction = jCoord0,1);
+var stones = jGetWindow("Inventory").getInventories()[0].getItems("stone").length;
+var free_slots = jGetWindow("Inventory").getInventories()[0].freeSlots();
+
+//jToConsole("Stones = "+stones);
+//jToConsole("Free slots = "+free_slots);
+var boulder = jFindObjectByName("bumlings", 50)
+var lay_stone_coords = jMyCoords();
+//jToConsole("Boulder id = "+boulder_id);
+//jToConsole("lay_stone_coords = "+lay_stone_coords);
+if ((stones+free_slots)<5) {
+	jToConsole("Пиздец");
+	jExit();
+}
+while (true) {
+	if (stones < free_slots) {
+		ChipStone(boulder);
+	}
+	stones = jGetWindow("Inventory").getInventories()[0].getItems("stone").length;
+	free_slots = jGetWindow("Inventory").getInventories()[0].freeSlots();
+	LayStone(lay_stone_coords, direction);
+	lay_stone_coords = jMyCoords();
+	boulder = jFindObjectByName("bumlings", 50)
+	stones = jGetWindow("Inventory").getInventories()[0].getItems("stone").length;
+	free_slots = jGetWindow("Inventory").getInventories()[0].freeSlots();
+}
+//jToConsole("boulder.position = "+boulder.position());
+//jToConsole("boulder.position offset = "+boulder.position().add(-15, -15));
+
+var shift_tile = jCoord(direction);
+var shift_coord = shift_tile.mul(11);
+var tile = jGetTileType(shift_tile);
+var abs_shift = jMyCoords().add(shift_coord);
+
+jToConsole(tile);
+jToConsole(shift_coord);
+jToConsole(tile);
+jToConsole("Tlify = "+jTilify(jMyCoords()));
+
+//c1.equals(c2)*/

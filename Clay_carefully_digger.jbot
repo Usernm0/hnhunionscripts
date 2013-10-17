@@ -1,0 +1,77 @@
+//#! name = Clay digger (carefully)
+//#! uniq = Usernm_Clay_Digger
+//#! icon = gfx/invobjs/clay
+
+include("Usernm_lib");
+
+function tryPlaceTable(offset, name){
+	var my_coord = jTilify(jMyCoords());
+	jToConsole("my_coord = "+my_coord);
+	jToConsole("offset.mul(11) = "+offset.mul(11));
+	var table = jFindMapObjectNearAbs(my_coord.add(offset.mul(11)), 1, "sign");
+		jToConsole("table = "+table);
+	if (table == null){
+		jSendDoubleAction("bp", name);
+		jSleep(1000);
+		jPlace(offset, 1, 0);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+var start_coord = jMyCoords();
+var main_direction = jCoord(-1,0);
+var secondary_direction = jCoord(0,-1);
+var cauldron_count = 6
+var cauldron_shift = start_coord.add(secondary_direction.mul(cauldron_count*11));
+var cauldron_table = jFindMapObjectNearAbs(cauldron_shift, 1, "sign");
+var cauldron_table_full = 0
+
+while(true){
+while (jGetStamina()<90){
+	drinkWater();
+}
+if (jGetWindow("Inventory").getInventories()[0].freeSlots() !== 0){
+	DigHere();
+}
+var clay = jGetWindow("Inventory").getInventories()[0].getItems("clay", "clay-acre");
+
+while (clay.length > 1){
+	if (tryPlaceTable(secondary_direction.mul(cauldron_count), "ccauldron") == true){
+		while (!jHaveWindow("Clay Cauldron")){
+			jSleep(100);
+		}
+		for (var i = 0; i < clay.length; i++){
+			clay[i].transfer();
+		}
+		while (jGetWindow("Inventory").getInventories()[0].getItems("clay", "clay-acre").length){
+			jSleep
+	} else {
+		cauldron_count = cauldron_count-1
+		break;
+	}
+}
+
+	jAbsClick(start_coord,1,0);
+	safeWaitMove(start_coord);	
+
+}
+/*	var build_window = jGetWindow("Clay Cauldron");
+	var build_count = jGetBuildValues("Clay Cauldron", 1).split("/")
+
+}
+}
+
+	/*	if (build_count[0] == 0){
+		jToConsole("υσι");
+		break;
+	} else {
+		cauldron_table_full = 1
+		cauldron_count = cauldron_count - 1
+		jToConsole("cauldron_count = "+cauldron_count);
+		cauldron_shift = start_coord.add(secondary_direction.mul(cauldron_count*11));
+		jToConsole("cauldron_shift = "+cauldron_shift);
+		jAbsClick(cauldron_table.position().sub(secondary_direction.mul(22)),1,0);
+		safeWaitMove(cauldron_table.position().sub(secondary_direction.mul(22)));		
+	}*/

@@ -1,0 +1,347 @@
+//#! name = Farmer
+//#! uniq = Usernm_Farmer
+
+include("Usernm_lib");
+
+var crop_number = 2;
+var direction_2 = jCoord(1,0);
+// harvest mode. 1 - harvest, plant, straw, fiber in tables, seeds in chests.
+// 2 - harvest, plant, seeds, product in trough.
+// 3 - harvest without planting.
+var harvest_mode = 1;
+
+var container_name = "cclosed";
+var trough_name = "trough";
+
+var inventory = checkInventory();
+var field_line_size = 8;
+var product_name = 0;
+
+/*
+var seed_name = "seed-wheat";
+var crop_name = "plants/wheat";
+var crop_stage = 3;
+*/
+//var seed_name = "peapod";
+//var crop_name = "plants/peas";
+
+// Beetroot
+if (crop_number == 1){
+	var seed_name = "beetroot";
+	var crop_name = "plants/beetroot";
+	var crop_stage = 3;
+	var field_line_size = 5;
+	var product_name = "beetrootleaves"
+}
+
+// Carrot
+if (crop_number == 2){
+	var seed_name = "carrot";
+	var crop_name = "plants/carrot";
+	var crop_stage = 4;
+}
+
+// Hemp
+if (crop_number == 5){
+	var seed_name = "seed-hemp";
+	var crop_name = "plants/hemp";
+	var crop_stage = 4;
+	var product_name = "fibre"
+	var sign_name = "demijohn";
+	var build_window_name = "Demijohn";
+	var sign_capacity = 10;
+}
+
+// Poppy
+if (crop_number == 8){
+	var seed_name = "seed-poppy";
+	var crop_name = "plants/poppy";
+	var crop_stage = 4;
+}
+
+// Pepper
+if (crop_number == 10){
+	var seed_name = "seed-pepper";
+	var crop_name = "plants/pepper";
+	var crop_stage = 3;
+}
+
+// Tea
+if (crop_number == 11){
+	var seed_name = "seed-tea";
+	var crop_name = "plants/tea";
+	var crop_stage = 3;
+	var field_line_size = 8;
+	var product_name = "tea-fresh"
+}
+
+// Tobacco
+if (crop_number == 12){
+	var seed_name = "seed-tobacco";
+	var crop_name = "plants/tobacco";
+	var crop_stage = 4;
+	var field_line_size = 8;
+	var product_name = "tobacco-fresh"
+}
+
+// Yellow Onion
+if (crop_number == 14){
+	var seed_name = "onion";
+	var crop_name = "plants/onion";
+	var crop_stage = 3;
+}
+
+while (true){
+	if ((harvest_mode = 1)||(harvest_mode = 3)){
+		var nearest_container = findNearestObject(container_name, 10);
+		var opposite_direction = getDirectionToObject(nearest_container);
+		var direction = opposite_direction.mul(-1);
+	}
+	if (harvest_mode = 2){
+		var nearest_trough = findNearestObject(trough_name, 10);
+		var opposite_direction = getDirectionToObject(nearest_trough);
+		var direction = opposite_direction.mul(-1);
+	}		
+//		var position_in_tiles = Math.floor((nearest_container.position().dist(jMyCoords()))/11)-1;
+	if (jGetStamina()<60){
+		drinkWater();
+	}
+	harvestOneLine(crop_name, field_line_size, direction, crop_stage);
+	if ((harvest_mode = 1)||(harvest_mode = 3)){
+		if ((crop_number == 3)||(crop_number == 5)||(crop_number == 13)){
+			var last_position = jMyCoords();
+			collectProduct(product_name, direction);
+			unloadProductInSign(sign_name, build_window_name, direction, sign_capacity);
+			jAbsClick(last_position,1,0);
+			safeWaitMove(last_position);
+		};
+		if ((crop_number == 11)||(crop_number == 12)){
+			dropProduct(product_name);
+			jSleep(200); // I dislike sleep without condition, but it stops sometimes without it.
+		}
+	}
+	if (harvest_mode = 2){
+		foodTrough(nearest_trough, seed_name, product_name, field_line_size);
+	}
+	plantOneLine(seed_name, field_line_size, opposite_direction);
+	if (inventory.getItems(seed_name).length > 0){
+		unloadSeeds(nearest_container, direction);
+	}
+	if (product_name !== 0){
+		if ((crop_number == 3)||(crop_number == 5)||(crop_number == 13)){
+			var last_position = jMyCoords();
+			collectProduct(product_name, direction);
+			unloadProductInSign(sign_name, build_window_name, direction, sign_capacity);
+			jAbsClick(last_position,1,0);
+			safeWaitMove(last_position);
+		};
+	};
+	stepOnce(direction_2);
+}
+/**/
+
+while (harvest_mode == 2){
+	if (jGetStamina()<60){
+		drinkWater();
+	}
+	harvestOneLine(crop_name, field_line_size, direction, crop_stage);
+	foodTrough(nearest_trough, seed_name, product_name, field_line_size);
+	plantOneLine(seed_name, field_line_size, opposite_direction);
+	stepOnce(direction_2);
+}
+
+
+function foodTrough(nearest_trough, seed_name, product_name, field_line_size){
+	var product = inventory.getItems(product_name);
+	var last_position = jMyCoords();
+	for (var i = 0; i < product.length; i++){
+		product[i].take();
+		jWaitDrag();
+		nearest_trough.interactClick(0);
+		jWaitDrop();
+	}
+	var seeds = inventory.getItems(seed_name);
+	sortItemsInInventory(seeds);
+	if (seeds.length>field_line_size){
+		for (var i = field_line_size; i < seeds.length; i++){
+			seeds[i].take();
+			jWaitDrag();
+			nearest_trough.interactClick(0);
+			jWaitDrop();
+		}
+	}
+	jAbsClick(last_position,1,0);
+	safeWaitMove(last_position);
+}
+
+function collectProduct(product_name, direction){
+	while (true){
+		var product = jFindMapObjectNearAbs(jTilify(jMyCoords()), 1, product_name);
+		jToConsole("product = "+product);
+		if (product !== null){
+			jDoClick(product.getID(), 3, 0);
+			var free_slots = inventory.freeSlots();
+			while ((inventory.freeSlots() == free_slots)&&(jIsDragging() == false)){
+				jSleep(100);
+			}
+		}
+		stepper(direction);
+		if (jGetTileType(direction) == 8){
+			product = jFindMapObjectNearAbs(jTilify(jMyCoords()), 1, product_name);
+			if (product !== null){
+				jDoClick(product.getID(), 3, 0);
+				var free_slots = inventory.freeSlots();
+				while ((inventory.freeSlots() == free_slots)&&(jIsDragging() == false)){
+					jSleep(100);
+				}
+			}
+			break;
+		}
+	}
+}
+
+
+function stepper(step_direction){
+	var next_tile = jMyCoords().add(step_direction.mul(11));
+	jAbsClick(next_tile,1,0);
+	safeWaitMove(next_tile);
+}
+
+//collectProduct(product_name, direction);
+
+function unloadProductInSign(sign_name, build_window_name, direction, sign_capacity){
+	jSendDoubleAction("bp", sign_name);
+	jSleep (1000);
+	jPlace(direction, 1, 0);
+	while (!jHaveWindow(build_window_name)){
+		jSleep(100);
+	}
+	var build_window = jGetWindow(build_window_name);
+	material = inventory.getItems(product_name);
+	if (material.length < sign_capacity){
+		sign_capacity = material.length;
+	}
+	for (var i = 0; i < sign_capacity; i++){
+		material[i].transfer();
+	}
+}
+
+/**/
+function dropProduct(product_name){
+	var product = inventory.getItems(product_name);
+	jToConsole("Drop product on ground!");
+	for (var i = 0; i < product.length; i++){
+		product[i].drop();
+	}
+}
+
+function stepOnce(directon_2){
+	var next_tile = jMyCoords().add(direction_2.mul(11));
+	jAbsClick(next_tile,1,0);
+	safeWaitMove(next_tile);
+}
+
+function harvestCrop(crop){
+	jSendAction("harvest");
+	jWaitCursor("harvest");
+	jDoClick(crop.getID(),1,0);
+	inventoryItemsCountChange();
+	resetCursor();
+}
+
+function harvestOneLine(crop_name, field_line_size, direction, crop_stage){
+	var start_point = jMyCoords();
+	if (start_point !== jTilify(start_point)){
+		jAbsClick(jTilify(start_point),1,0);
+		safeWaitMove(jTilify(start_point));
+	}
+	while (inventory.freeSlots() >= 3){
+		var crop = jFindMapObjectNearAbs(start_point, 1, crop_name);
+		var next_tile = jMyCoords().add(direction.mul(11));
+		if (crop !== null){
+			if (crop.blob(0) == crop_stage){
+				harvestCrop(crop);
+			}
+		}
+		if (jGetTileType(direction) !== 8){
+			jAbsClick(next_tile,1,0);
+			safeWaitMove(next_tile);
+			start_point = jMyCoords();
+			position_in_tiles++;
+		} else {
+			jToConsole("Field line end");
+			break;
+		}
+	}
+}
+
+function sortItemsInInventory(items){
+	items.sort(function(a,b) {
+		if(a.quality()<b.quality()) return 1;
+		if(a.quality()>b.quality()) return -1;
+		if(a.quality()==b.quality()) return 0;
+	});
+	return items;
+}
+
+function plantOneLine(seed_name, field_line_size, direction){
+	var start_point = jMyCoords();
+	if (start_point !== jTilify(start_point)){
+		jAbsClick(jTilify(start_point),1,0);
+		safeWaitMove(jTilify(start_point));
+	}
+	var inventory = checkInventory();
+	var seeds = inventory.getItems(seed_name);
+	var seed_coord = jCoord(0,0);
+	sortItemsInInventory(seeds);
+
+	var next_tile = start_point.add(direction.mul(11));
+	var crop = jFindMapObjectNearAbs(start_point, 1, "plant");
+	var i = 0;
+	while (true){
+	var crop = jFindMapObjectNearAbs(start_point, 1, "plant");
+
+		if ((jGetTileType(jCoord(0,0) == 9))&&(crop == null)){
+			jToConsole(i+" "+seeds[i]);
+			seeds[i].take();
+			jWaitDrag();
+			jAbsInteractClick(start_point, 0);
+			while (crop == null){
+				jSleep(100);
+				crop = jFindMapObjectNearAbs(start_point, 1, "plant");
+			}
+		}
+		i++
+		if (jGetTileType(direction) !== 8){
+			jAbsClick(next_tile,1,0);
+			safeWaitMove(next_tile);
+			start_point = jMyCoords();
+			crop = jFindMapObjectNearAbs(start_point, 1, "plant");
+			next_tile = jMyCoords().add(direction.mul(11));
+		} else {
+		jToConsole("Field line end");
+			break;
+		}
+	}
+}
+
+function unloadSeeds(nearest_container, direction){
+	jDoClick(nearest_container.getID(), 3, 0);
+	var container_name = "Chest";
+	jWaitNewWindow(container_name);
+	var container_inventory = jGetWindow(container_name).getInventories()[0];
+	var container_capacity = container_inventory.size().x*container_inventory.size().y;
+	var container_free_slots = container_inventory.freeSlots();
+	var seeds = inventory.getItems(seed_name);
+	var next_tile = jTilify(nearest_container.position().add(direction.mul(11)));
+	if (seeds.length > container_free_slots){
+		jToConsole("container full, drop all items on ground!");
+		var container_items = container_inventory.getItems("gfx")
+		for (var i = 0; i < container_items.length; i++){
+			container_items[i].drop();
+		}
+	}
+	seeds[0].transferSuchAll();
+	jAbsClick(next_tile,1,0);
+	safeWaitMove(next_tile);
+}

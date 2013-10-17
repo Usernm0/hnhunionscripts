@@ -1,0 +1,15 @@
+//#! tooltip = Move Sliders
+//#! name = Slider
+//#! uniq = apxproduction_slidermover
+
+//life, night, civil, nature, martial, change
+
+function main() {
+	while(true) {
+		jBuyBelief("civil", -1);
+		//jBuyBelief("change", 1);
+		jSleep(600000);
+	}
+}
+
+main();

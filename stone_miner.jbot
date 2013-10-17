@@ -1,0 +1,69 @@
+//#! name = Stone Miner
+//#! uniq = stone_miner_lomserman
+
+//Добывает камни из указанного булыжника и кладет их в указанную табличку.
+include("jBotAPI");
+
+var boulder   = jSelectObject("Select STONE BOULDER!");
+var stock     = jSelectObject("Select building blueprint!");
+var inventory = checkInventory();
+
+//Возвращает количество камней в инвентаре.
+function countStones(){
+	inventory = checkInventory();
+	stones = inventory.getItems("stone");
+	return stones.length;
+}
+
+
+//Кладет все камни в табличку.
+function stackStones(stock){
+	inventory = checkInventory();
+	//Идем к табличке.
+	jDoClick(stock.getID(), 3, 0);
+	jWaitMove();
+	jWaitNewWindow("Milestone");
+	stones = inventory.getItems("stone");
+	//Складываем камушки.
+	for (var i = 0; i < stones.length; i++){
+		stones[i].transfer();
+	}
+}
+
+function waitFullInventory(){
+	jWaitStartProgress(1000);
+	while((jHaveHourglass()) && (inventory.freeSlots()>0)){
+		jSleep(300);
+	}
+}
+
+
+function mine(){
+	jDoClick(boulder.getID(), 3, 0);
+	jWaitPopup();
+	jSelectContextMenu("Chip stone");
+	jWaitMove();
+	waitFullInventory();
+	jOffsetClick(0, 1, 0);
+	drinkWater();
+	stackStones(stock);
+}
+
+function main(){
+	if (countStones() > 0){
+		stackStones(stock);
+	}
+	var work = true;
+	while(work){
+		mine();
+		jSleep(2000);
+		if (countStones() > 0){
+			work = false; //Не смогли сложить камушки, склад полон.
+		}	
+	}	
+}
+
+//mine();
+main();
+
+beeper();

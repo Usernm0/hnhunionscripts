@@ -1,0 +1,17 @@
+function CheckMove(coord) {
+	while (!jMyCoords().equals(coord)){
+		jSleep(100);
+	}
+	while (jIsMoving()){
+		jSleep(100);
+	}
+}
+
+var herb = jFindObjectByName("taproot", 20)
+if (jPFMove(jTilify(herb.position()))<0) {
+	jToConsole("Не могу пройти");
+	jExit();
+}
+CheckMove(jTilify(herb.position()));
+jDoClick(herb.getID(),3,0);
+jWaitPopup();

@@ -1,0 +1,144 @@
+//#! name = Wood mover
+//#! uniq = Usernm_Wood_mover
+
+function checkInventory() {
+	if(!jHaveWindow("Inventory")) {
+		jToggleInventory();
+		while(!jHaveWindow("Inventory")){
+			jSleep(100);
+		}
+	}
+	return jGetWindow("Inventory").getInventories()[0];
+}
+
+function fillGlass() {
+	var inventory = checkInventory();
+	var buckets = inventory.getItems("bucket-wine");
+	if (buckets.length > 0) {
+		inventory.sortItems(buckets, "amount", false);
+		var bucket = buckets[0];
+		var bucket_coord = bucket.coord();
+		if (bucket.isActual()) {
+			bucket.take();
+			jWaitDrag();
+			var glasses = inventory.getItems("glass-winee");
+			if (glasses.length > 0) {
+				var glass = glasses[0];
+				if (glass.isActual()) {
+					glass.itemact(0);
+					while (glass.name() == "glass-winee"){
+						jSleep(100);
+					}
+					
+				}
+			}
+			inventory.drop(bucket_coord);
+			jWaitDrop();
+		}
+	}
+}
+
+function drinkGlass(){
+	var inventory = checkInventory();
+	var glasses = inventory.getItems("glass-winef");
+	if (glasses.length > 0) {
+		var glass = glasses[0];
+		if (glass.isActual()) {
+			glass.iact();
+			if (jWaitPopup()) {
+				jSelectContextMenu("Drink");
+				if (glass.name().indexOf("0.1")>0){
+					while (glass.name().indexOf("Empty")<0){
+						jSleep(100);
+					}
+				}
+				if (glass.name().indexOf("0.2")>0){
+					while (glass.name().indexOf("0.1")<0){
+						jSleep(100);
+					}
+				}
+				jAbsClick(jMyCoords(),1,0);
+			}
+		}
+	}
+}
+
+function travelWeariness() {
+	var buffs = jGetBuffs();
+	for (var i = 0; i < buffs.length; i++) {
+	//	jToConsole(buffs[i].name()+" = "+buffs[i].meter());
+		if (buffs[i].name().indexOf("Travel Weariness") >= 0) {
+			return buffs[i].meter();
+		}
+	}
+	return 0;
+}
+
+function waitPickup(){
+	var player = jFindObjectByName("borka", 1)
+	while (player.isCarrying() == false){
+		jSleep(100)
+	}
+}
+
+function waitPlace(){
+	var player = jFindObjectByName("borka", 1)
+	while (player.isCarrying() == true){
+		jSleep(100)
+	}
+}
+
+function pickup(object){
+	jSendAction("carry");
+	jWaitCursor("chi");
+	jDoClick(object.getID(), 1, 0);
+	waitPickup();
+}
+
+function safeWaitMove(coord) {
+	while (!jMyCoords().equals(coord)){
+		jSleep(100);
+	}
+	while (jIsMoving()){
+		jSleep(100);
+	}
+}
+
+function resetCursor() {
+	if (!jIsCursor("arw")) {
+		jAbsClick(jCoord(0, 0), 3, 0);
+		jWaitCursor("arw");
+	}
+}
+
+function noMoreWine() {
+	var buffs = jGetBuffs();
+	for (var i = 0; i < buffs.length; i++) {
+		if (buffs[i].name().indexOf("Drunk and Riotous") >= 0) {
+			return true;
+		}
+	}
+	return false;
+}
+
+while (!noMoreWine()){
+var log = jFindObjectByName("log", 50);
+pickup(log);
+waitPickup();
+if (travelWeariness()>89){
+	fillGlass();
+	drinkGlass();
+}
+jSendDoubleAction("theTrav", "village");
+jWaitProgress();
+while (jFindObjectByName("vclaim", 10) == null){
+	jSleep(100);
+}
+jAbsClick(jMyCoords(),3,0);
+waitPlace();
+jSendDoubleAction("theTrav", "hearth");
+jWaitProgress();
+while (jFindObjectByName("hearth", 1) == null){
+	jSleep(100);
+}
+}

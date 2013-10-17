@@ -1,0 +1,29 @@
+//#! name = Eater
+//#! uniq = Usernm_eater
+//#! icon = gfx/invobjs/apple
+
+var food_name = "carrot"
+var container_name = "Chest"
+
+var container_inventory = jGetWindow(container_name).getInventories()[0];
+
+while (jGetHungry()<95){
+	var container_free_slots = container_inventory.freeSlots();
+//	var hungry_meter = jGetHungry()
+	var food = container_inventory.getItems(food_name)[0]
+	if (food.isActual()){
+		food.iact();
+		jWaitPopup();
+		if (jHavePopup()){
+			jSelectContextMenu("Eat");
+			// такой-то костыль.
+			if (jHavePopup()){
+				jSleep(200);
+				jSelectContextMenu("Eat");
+			}
+			while (container_free_slots == container_inventory.freeSlots()){
+				jSleep(100);
+			}
+		}
+	}
+}

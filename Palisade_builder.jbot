@@ -1,0 +1,101 @@
+//#! name = Palisade builder
+//#! uniq = Palisade_builder_Usernm
+
+include("moving");
+
+// Возвращает JSInventory[]
+function checkInventory() {
+	if(!jHaveWindow("Inventory")) {
+		jToggleInventory();
+		while(!jHaveWindow("Inventory")){
+			jSleep(100);
+		}
+	}
+	return jGetWindow("Inventory").getInventories()[0];
+}
+
+function extend_direction(coord){
+	var coord2 = jCoord(coord);
+	if (jCoord(0,-1).equals(coord)){
+		return "Extend North"
+	}
+	if (jCoord(0,1).equals(coord)){
+		return "Extend South"
+	}
+	if (jCoord(-1,0).equals(coord)){
+		return "Extend West"
+	}
+	if (jCoord(1,0).equals(coord)){
+		return "Extend East"
+	}
+}
+
+function buildWall (start_coord, direction2, direction, wall_name, build_window_name, build_material, build_material2){
+	while (material.length > 1){
+		var wall = jFindMapObjectNearAbs(start_coord.sub(direction2), 1, wall_name);
+		jAbsClick(start_coord.add(direction2),1,0);
+		safeWaitMove(start_coord.add(direction2));
+		jDoClick(wall.getID(), 3, 0);
+		jWaitPopup();
+		jSelectContextMenu(extend_direction(direction))
+		while (!jHaveWindow(build_window_name)){
+			jSleep(100);
+		}
+		var build_window = jGetWindow(build_window_name);
+		material = inventory.getItems(build_material, build_material2);
+		for (var i = 0; i < material.length; i++){
+			material[i].transfer();
+		}
+		var build_count = jGetBuildValues(build_window_name, 1).split("/")
+		if (build_count[0] > 0){
+			var wall = jFindMapObjectNearAbs(start_coord, 1, "sign");
+			jToConsole("хуй");
+			return wall
+		}
+		build_window.pushButton("Build");
+		while (jHaveWindow(build_window_name)){
+			jSleep(100);
+		}
+		jAbsClick(jTilify(jMyCoords()),1,0);
+		safeWaitMove(jTilify(jMyCoords()));
+		var start_coord = jMyCoords();
+	}
+	return false
+}
+
+var wall = jSelectObject("Select wall");
+jToConsole(wall.name());
+// Fence
+if (wall.name().indexOf("fence") >=0){
+	var wall_name = "fence"
+	var build_window_name = "Fence Segment"
+	var build_material = "branch"
+	var build_material2 = "bough"
+}
+// Palisade
+if (wall.name().indexOf("palisade") >=0){
+	var wall_name = "palisade"
+	var build_window_name = "Palisade Segment"
+	var build_material = "wood"
+	var build_material2 = "wood"
+}
+// Brickwall
+if (wall.name().indexOf("brickwall") >=0){
+	var wall_name = "brickwall"
+	var build_window_name = "Brickwall Segment"
+	var build_material = "brick"
+	var build_material2 = "brick"
+}
+var start_coord = jTilify(absCoordObjectNearestShift(wall, 11));
+var direction2 = start_coord.sub(wall.position());
+var direction = direction2.div(11);
+jToConsole("direction2 = "+direction2);
+jToConsole("direction = "+direction);
+
+while (true){
+	var inventory = checkInventory();
+	material = inventory.getItems(build_material, build_material2);
+	
+//	if (material.length > 0){
+//buildWall (start_coord, direction2, direction, wall_name, build_window_name, build_material, build_material2);
+/**/

@@ -1,0 +1,45 @@
+//#! name = relogin
+//#! uniq = relogin
+jPrint("pushed");
+	/*
+var account_name = "Dumb";
+var character_name = "Agalmeena";
+
+function waitCharlist(){
+	while (!jHaveCharlist()){
+		jSleep(100);
+	}
+	jPrint("Charlist opened");
+}
+
+var ACCNAME = "Dumb";			//account name
+var CHARNAME = "agalmeena";	//character name
+
+function whereYouLoggedOut()
+{
+    jLogin(ACCNAME);
+    while(!jHaveCharlist())
+        jSleep(700);
+    jPrint("SelectChar");
+    jSelectChar(CHARNAME);
+    var logwnd = jWaitNewWindow(CHARNAME, 10000);
+    jPrint("push");
+    jSleep(100);
+    logwnd.pushButton(2);
+    jPrint("pushed");
+}
+
+jLogout();
+jSleep(3000);
+whereYouLoggedOut();
+//whereYouLoggedOut(account_name, character_name);
+/*
+function whereYouLoggedOut(account_name, character_name){
+	jLogin(account_name);
+	waitCharlist();
+	jPrint("Character selected = "+jSelectChar(character_name));
+	var login_window = jWaitNewWindow(character_name, 120000);
+	jSleep(100);
+	login_window.pushButton(2);
+}
+/**/

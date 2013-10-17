@@ -1,0 +1,115 @@
+//#! name = Clay digger
+//#! uniq = Usernm_Clay_Digger
+
+function CheckMove(coord) {
+	while (!jMyCoords().equals(coord)){
+		jSleep(100);
+	}
+	while (jIsMoving()){
+		jSleep(100);
+	}
+}
+
+function WaitFullInventory() {
+	while (0 !== jGetWindow("Inventory").getInventories()[0].freeSlots()){
+		jSleep(100);
+	}
+}
+
+function ResetCursor(){
+	if (!jIsCursor("arw")) {
+		jAbsClick(jCoord(0, 0), 3, 0);
+		jWaitCursor("arw");
+	}
+}
+
+if (!jHaveWindow("Inventory")){
+	jToggleInventory()
+    jWaitNewWindow("Inventory")
+}
+var offset = jCoord(-153, -65);
+var jump_weariness = 80
+
+function MoveToSpot(coord){
+var hearth_fire = jFindObjectByName("play", 20);
+var hearth_fire_position = hearth_fire.position();
+var spot_abs = hearth_fire_position.add(coord);
+	jAbsClick(spot_abs,1,0);
+	CheckMove(spot_abs);
+}
+function DigClay(){
+	jSendAction("dig");
+	jWaitCursor("dig");
+	jAbsClick((0,0),1,0)
+	WaitFullInventory()
+	ResetCursor()
+}
+/*
+var buff = jGetBuffs()
+if ("Travel Weariness" == buff[0].name()){
+	var travel_weariness = buff[0].meter()
+	jSendDoubleAction("theTrav", "village");
+	while (travel_weariness == buff[0].meter()){
+		jSleep(100);
+	}
+	jToConsole("Ok");
+}*/
+
+/*var totem = jFindObjectByName("vclaim", 20);
+var totem_position = totem.position();
+var chest = jFindObjectByName("cclosed", 20);
+var chest_id = chest.getID();
+var chest_position = chest.position();
+var chest_position_shift = chest_position.add(0,-11);
+if (jIsPathFree(chest_position_shift)) {
+	jAbsClick(chest_position_shift,1,0);
+	CheckMove(chest_position_shift);
+}
+else {
+	if (jPFMove(chest_position_shift)<0) {
+		jToConsole("Не могу пройти");
+		jExit();
+	}
+	CheckMove(chest_position_shift);
+}
+	jDoClick(chest_id, 3, 0);
+jWaitNewWindow("Chest")
+var chest_inventory = jGetWindow("Chest").getInventories()[0];
+*/
+
+var buff = jGetBuffs()
+if ("Travel Weariness" == buff[0].name()){
+	if ((100-jump_weariness)<buff[0].meter()){
+		var travel_weariness = buff[0].meter()
+		jToConsole("ne Ok");
+		var chest_inventory = jGetWindow("Chest").getInventories()[0];
+		jToConsole(chest_inventory.getItems("what", "hat-high")[0]);
+		if ("undefined" !== chest_inventory.getItems("winef")[0]){
+			jToConsole("хуй");
+			chest_inventory.getItems("winef")[0].iact()
+		}
+	}
+}
+
+//jSendDoubleAction("theTrav", "village");
+
+//DigClay();
+/*var spot_shift = jMyCoords().add(offset);
+jToConsole(jIsPathFree(spot_shift));
+if (jIsPathFree(spot_shift)) {
+	
+else {
+	if (jPFMove(spot_shift)) {
+		jToConsole("Не могу пройти");
+		jExit();
+	}
+}*/
+
+//jToConsole("Hearth fire position = "+hearth_fire_position);
+//jToConsole("My coord = "+jMyCoords());
+//var offset = jMyCoords().sub(hearth_fire.position())
+//jToConsole("Offset = "+offset);
+/*var abs_shift = jMyCoords().add(-11,0);
+jAbsClick(abs_shift,1,0);
+CheckMove(abs_shift);
+*/

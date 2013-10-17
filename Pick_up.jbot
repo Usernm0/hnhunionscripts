@@ -1,0 +1,44 @@
+//#! name = Pick up em all!
+//#! uniq = Usernm_Pickuper
+//#! icon = gfx/invobjs/carrot
+
+/*
+Скрипт ждет когда пользователь ткнет на вещь на земле. После чего запомнит ее имя и будет собирать такие же в радиусе указанном в переменной radius относительно последней собранной вещи. Скрипт собирает предметы до заполнения инвентаря. Если предмет не поместился в инвентарь, скрипт его выбросит и завершится.
+*/
+
+function checkInventory() {
+	if(!jHaveWindow("Inventory")) {
+		jToggleInventory();
+		while(!jHaveWindow("Inventory")){
+			jSleep(100);
+		}
+	}
+	return jGetWindow("Inventory").getInventories()[0];
+}
+
+var radius = 10;
+var item = jSelectObject("Select item on ground");
+jToConsole("item name = "+item.name().toString());
+var item_name = item.name();
+item = jFindObjectByName(item_name, radius);
+var inventory = checkInventory();
+var free_slots = inventory.freeSlots();
+var item_square = 1;
+jToConsole("free slots = "+free_slots);
+
+while (free_slots>0){
+	jDoClick(item.getID(), 3, 0);
+	while ((inventory.freeSlots() == free_slots)&&(jIsDragging() == false)){
+		jSleep(100);
+	}
+	if (jIsDragging()){
+		var dragging = jGetDraggingItem();
+		jToConsole("dragging = "+dragging.name());
+		jDropObject(0);
+		jWaitDrop();
+		break;
+	}
+	free_slots = inventory.freeSlots();
+	item = jFindObjectByName(item_name, radius);
+}
+/**/

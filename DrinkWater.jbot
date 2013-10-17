@@ -1,0 +1,5 @@
+//#! name = Drink_water
+//#! uniq = Usernm_Drink_water
+//#! icon = gfx/invobjs/waterflask
+include("Usernm_lib");
+restoreStamina();

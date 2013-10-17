@@ -1,0 +1,134 @@
+//#! name = Resource checker
+//#! uniq = Usernm_Resource_checker
+//#! icon = gfx/invobjs/clay
+
+function checkInventory() {
+	if(!jHaveWindow("Inventory")) {
+		jToggleInventory();
+		while(!jHaveWindow("Inventory")){
+			jSleep(100);
+		}
+	}
+	return jGetWindow("Inventory").getInventories()[0];
+}
+
+function checkClay(){
+	checkInventory();
+	var tile = jGetTileType(jCoord(0, 0));
+	var	free_slots_start = jGetWindow("Inventory").getInventories()[0].freeSlots();
+	// 1 - мелководье, 19 - красная глина, 26 - гора, 20 - песок
+	if 	((tile == 1)||(tile == 19)||(tile == 26)||(tile == 20)){
+		if (free_slots_start >= 2){
+			jSendAction("dig");
+			jWaitCursor("dig");
+			jOffsetClick(jCoord(0, 0), 1, 0);
+			while (jHaveHourglass() == false){
+				jSleep(100);
+			}
+			var free_slots_change = free_slots_start - jGetWindow("Inventory").getInventories()[0].freeSlots()
+			while ((jHaveHourglass())&&(free_slots_change<2)){
+				jSleep(100);			
+				var free_slots_change = free_slots_start - jGetWindow("Inventory").getInventories()[0].freeSlots()
+			}
+			jAbsClick(jCoord(0, 0), 3, 0);
+			jWaitCursor("arw");
+			jAbsClick(jMyCoords(), 1, 0);
+			var free_slots_change = free_slots_start - jGetWindow("Inventory").getInventories()[0].freeSlots()
+			if (free_slots_change == 2){
+				var clay = jGetWindow("Inventory").getInventories()[0].getItems("clay", "sand")
+				var quality = clay[clay.length-1].quality()
+				jToConsole("Clay spot quality = "+quality);
+				clay[0].dropSuchAll();
+				return quality;
+			}
+			else {
+				return 0;
+			}
+		}
+	}
+	else {
+		return 0;
+	}
+}
+
+function checkWater(){
+	checkInventory();
+	var tile = jGetTileType(jCoord(0, 0));
+	// 1 - мелководье, 0 - глубоководье
+	if 	((tile == 1)||(tile == 0)){
+		var inventory = jGetWindow("Inventory").getInventories()[0]
+		if (jGetWindow("Inventory").getInventories()[0].getItems("buckete")[0] == undefined){
+			if (jGetWindow("Inventory").getInventories()[0].getItems("bucket-water")[0] == undefined){
+				jToConsole("No bucket in inventory. Script stopped");
+				jExit();
+			}
+			else{
+				jGetWindow("Inventory").getInventories()[0].getItems("bucket-water")[0].iact();
+				jWaitPopup();
+				jSelectContextMenu("Empty");
+				while (jGetWindow("Inventory").getInventories()[0].getItems("buckete")[0] == undefined){
+					jSleep(100);
+				}
+			}
+		}
+		var bucket = inventory.getItems("buckete")[0];
+		var bucket_coord = bucket.coord();
+		bucket.take();
+		jWaitDrag();
+		jAbsInteractClick(jMyCoords(),3,0);
+		while (jGetDraggingItem().resName().indexOf("buckete")>0){
+			jSleep(100);
+		}
+		inventory.drop(bucket_coord);
+		jWaitDrop();
+		var quality = inventory.getItems("bucket-water")[0].innerQuality()
+		jToConsole("Water spot quality = "+quality);
+		return quality
+	}
+	else {
+		return 0;
+	}
+}
+
+function checkSoil(){
+	checkInventory();
+	var tile = jGetTileType(jCoord(0, 0));
+	var	free_slots_start = jGetWindow("Inventory").getInventories()[0].freeSlots();
+	// 10 - хвойный лес, 11 - лиственный лес, 13 - газон.
+	if 	((tile == 10)||(tile == 11)||(tile == 13)){
+		if (free_slots_start >= 1){
+			jSendAction("dig");
+			jWaitCursor("dig");
+			jOffsetClick(jCoord(0, 0), 1, 0);
+			while (jHaveHourglass() == false){
+				jSleep(100);
+			}
+			var free_slots_change = free_slots_start - jGetWindow("Inventory").getInventories()[0].freeSlots()
+			while ((jHaveHourglass())&&(free_slots_change<1)){
+				jSleep(100);			
+				var free_slots_change = free_slots_start - jGetWindow("Inventory").getInventories()[0].freeSlots()
+			}
+			jAbsClick(jCoord(0, 0), 3, 0);
+			jWaitCursor("arw");
+			jAbsClick(jMyCoords(), 1, 0);
+			var free_slots_change = free_slots_start - jGetWindow("Inventory").getInventories()[0].freeSlots()
+			if (free_slots_change == 1){
+				var soil = jGetWindow("Inventory").getInventories()[0].getItems("soil", "earthworm");
+				var quality = soil[soil.length-1].quality()
+				jToConsole("Soil spot quality = "+quality);
+				soil[0].dropSuchAll();
+				return quality;
+			}
+			else {
+				return 0;
+			}
+		}
+	}
+	else {
+		return 0;
+	}
+}
+
+checkSoil();
+checkClay();
+checkWater();

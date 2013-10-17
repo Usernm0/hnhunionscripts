@@ -1,0 +1,304 @@
+// Возвращает JSInventory[]
+function checkInventory() {
+	if(!jHaveWindow("Inventory")) {
+		jToggleInventory();
+		while(!jHaveWindow("Inventory")){
+			jSleep(100);
+		}
+	}
+	return jGetWindow("Inventory").getInventories()[0];
+}
+// Возвращает JSEquip
+function checkEquipment() {
+	if(!jHaveWindow("Equipment")) {
+		jToggleEquipment();
+		while(!jHaveWindow("Equipment")){
+			jSleep(100);
+		}
+	}
+	return jGetJSEquip();
+}
+
+// Функция возвращает JSWindow указанного объекта, пытаясь подойти к нему и открыть его.
+function checkObject(object_gob, window_name) {
+	if(!jHaveWindow(window_name)) {
+		jDoClick(object_gob.getID(), 3, 0);
+		while(!jHaveWindow(window_name)){
+			jSleep(100);
+		}
+		return jGetWindow(window_name);
+	}
+	else {
+		return jGetWindow(window_name);
+	}
+}
+
+// Немного поправленная первая половина функции drinkWater из jBotapi. Жесткая задержка в полсекунды заменена на интеллектуальную проверку наполненности фляги.
+function fillFlask() {
+	var inventory = checkInventory();
+	var buckets = inventory.getItems("bucket-water");
+	if (buckets.length > 0) {
+		inventory.sortItems(buckets, "amount", false);
+		var bucket = buckets[0];
+		var bucket_coord = bucket.coord();
+		if (bucket.isActual()) {
+			bucket.take();
+			jWaitDrag();
+			var flasks = inventory.getItems("waterflask", "waterskin", "kuksa");
+			if (flasks.length > 0) {
+				var flask = flasks[0];
+				if (flask.isActual()) {
+					flask.itemact(0);
+					if (flask.name().indexOf("Kuksa") >=0) {
+						var full = "0.3/0.3"
+					}
+					if (flask.name().indexOf("Waterflask") >=0) {
+						var full = "2.0/2.0"
+					}
+					if (flask.name().indexOf("Waterskin") >=0) {
+						var full = "3.0/3.0"
+					}
+					while ((flask.name().indexOf(full) < 0)&&((jGetDraggingItem().resName() == "bucket-water"))){
+						jSleep(100);
+					}
+				}
+			}
+			inventory.drop(bucket_coord);
+			jWaitDrop();		
+		}
+	}
+}
+// Немного поправленная вторая половина функции drinkWater из jBotapi. Вместо ожидания прогресса, проверка на стамину и пустоту фляги.
+function drinkFlask(){
+		var inventory = checkInventory();
+	var flasks = inventory.getItems("waterflask", "waterskin", "kuksa");
+	if (flasks.length > 0) {
+		var flask = flasks[0];
+		if (flask.isActual()) {
+			flask.iact();
+			if (jWaitPopup()) {
+				jSelectContextMenu("Drink");
+				while ((jGetStamina() <95)&&(flask.name().indexOf("Empty")<0)){
+					jSleep(100);
+				}
+			}
+		}
+	}
+}
+
+// Функция для совместимости с ботами. Делает тоже самое что и до переработки.
+function drinkWater(){
+	fillFlask();
+	drinkFlask();
+}
+
+// Восполняет стамину в цикле. Удобно использовать для куксы.
+function restoreStamina(){
+	while (jGetStamina()<95){
+		fillFlask();
+		drinkFlask();
+	}
+}
+
+// Функция набирает флягу на воде и пьет ее.
+function drinkWaterFromWater(){
+	checkInventory();
+	var tile = jGetTileType(jCoord(0, 0));
+	// 1 - мелководье, 0 - глубоководье
+	if 	((tile == 1)||(tile == 0)){
+		var inventory = jGetWindow("Inventory").getInventories()[0]
+		var flasks = inventory.getItems("waterflask", "waterskin", "kuksa");
+		if (flasks.length > 0) {
+		var flask = flasks[0];
+		var flask_coord = flask.coord();
+		flask.take();
+		jWaitDrag();
+		jAbsInteractClick(jMyCoords(),3,0);
+		jSleep(500);
+		inventory.drop(flask_coord);
+		jWaitDrop();
+		drinkFlask();
+	}
+	}
+}
+
+// Функция ждет, пока не заполнятся все слоты инвентаря персонажа.
+function WaitFullInventory() {
+	while (jGetWindow("Inventory").getInventories()[0].freeSlots() !== 0){
+		jSleep(100);
+	}
+}
+
+// Функция копает под персонажем.
+function digHere(){
+	jSendAction("dig");
+	jWaitCursor("dig");
+	jAbsClick(jMyCoords(),1,0);
+	WaitFullInventory();
+	resetCursor();
+	jAbsClick(jMyCoords(),1,0);	
+}
+
+// Ждет пока количество предметов в инвентаре не поменятеся.
+function inventoryItemsCountChange() {
+	var inventory = jGetWindow("Inventory").getInventories()[0];
+	var now = inventory.freeSlots();
+	while (inventory.freeSlots() == now){
+		jSleep(100);
+	}
+	return true;
+}
+
+// Дефолтная функция сброса курсора из jBotapi
+function resetCursor() {
+	if (!jIsCursor("arw")) {
+		jAbsClick(jCoord(0, 0), 3, 0);
+		jWaitCursor("arw");
+	}
+}
+
+// Функция загрузки материалов в табличку.
+function loadIntoTable(material){
+	for (var i = 0; i < material.length; i++){
+		material[i].transfer();
+	}
+}
+
+// Функция безопасного перемещения в координаты.
+function safeWaitMove(coord) {
+	while (!jMyCoords().equals(coord)){
+		jSleep(100);
+	}
+	var counter = 0;
+	while (jIsMoving()){
+		if (counter > 10){
+			break;
+		}
+		jSleep(100);
+		counter++;
+	}
+}
+
+// Функция пытается распахать тайл по координатам. Проверка распашки через тип тайла.
+function handsPlow(coord){
+	jSendAction("plow");
+	jWaitCursor("dig");
+	jAbsClick(coord,1,0);
+	safeWaitMove(jTilify(coord));
+	while (jGetTileType(jCoord(0,0)) !== 9){
+		jSleep(100);
+	}
+}
+
+// Функция ищет ближайший тайл из массива подходящий для распашки и возвращает его абсолютные координаты, если пахать в радиусе нечего - завершает скрипт.
+function findPlowableTile(radius){
+	var tiles_id=new Array(10,11,13,14,15);
+	var tile = new Array();
+	var distance = new Array();
+	for (var i = 0; i < tiles_id.length; i++){
+		try {
+			tile[i] = jGetNearestTileAbs(radius, tiles_id[i]);
+			distance[i] = tile[i].dist(jMyCoords());
+		 //	jToConsole("tile with id "+tiles_id[i]+" have coordinates = "+tile[i]);
+		//	jToConsole("distance to tile with id "+tiles_id[i]+" = "+distance[i]);
+		}
+		catch(NullPointerException){
+			tile[i] = -1;
+			distance[i] = -1;
+		//	jToConsole("tile with id "+tiles_id[i]+" not exist");
+		}
+	}
+	var max_distance = 5500;
+	for (var i = 0; i < tiles_id.length; i++){
+		if ((distance[i] >= 0) && (distance[i]<max_distance)){
+			max_distance = distance[i];
+			var result_tile = tile[i];
+		}
+	}
+	if (max_distance == 5500){
+		jToConsole("No plowable tiles in range");
+		jExit();
+	} else {
+		return result_tile;
+	}
+}
+
+// Функция находит направление (сторону света) где находится объект.
+function getDirectionToObject(object){
+	var offset_x = object.position().x - jMyCoords().x;
+	var offset_y = object.position().y - jMyCoords().y;	
+	if ((offset_y <= 0)&&(Math.abs(offset_y)>=Math.abs(offset_x))){
+//		jToConsole("object location on North");
+		return jCoord(0,-1);
+	}
+	if ((offset_y > 0)&&(Math.abs(offset_y)>Math.abs(offset_x))){
+//		jToConsole("object location on South");
+		return jCoord(0,1);
+	}
+	if ((offset_x <= 0)&&(Math.abs(offset_y)<=Math.abs(offset_x))){
+//		jToConsole("object location on West");
+		return jCoord(-1,0);
+	}
+	if ((offset_x > 0)&&(Math.abs(offset_y)<Math.abs(offset_x))){
+//		jToConsole("object location on East");
+		return jCoord(1,0);
+	}
+}
+
+// Функция находит ближайший объект в радиусе и возвращает его. Если таких объектов в радиусе нет - возвращает -1
+function findNearestObject(object_name, radius){
+	var objects = jGetObjects(radius, (0,0), object_name);
+	var distance = new Array();
+	for (var i = 0; i < objects.length; i++){
+		distance[i] = objects[i].position().dist(jMyCoords());
+	}
+	var min_distance = 5500;
+	for (var i = 0; i < objects.length; i++){
+		if ((distance[i] >= 0) && (distance[i]<min_distance)){
+			min_distance = distance[i];
+			var nearest_object = objects[i];
+		}
+	}
+	if (min_distance == 5500){
+		jToConsole("No objects in range");
+		return -1;
+	}
+	return nearest_object;
+}
+
+function getPlayerDirection(){
+	var player = jFindMapObjectNearAbs(jMyCoords(), 1, "borka")
+	if (player.hasLayer("head-0")){
+		jToConsole("SE");
+		return jCoord(1,1);
+	}
+	if (player.hasLayer("head-1")){
+		jToConsole("S");
+		return jCoord(0,1);
+	}
+	if (player.hasLayer("head-2")){
+		jToConsole("SW");
+		return jCoord(-1,1);
+	}
+	if (player.hasLayer("head-3")){
+		jToConsole("W");
+		return jCoord(-1,0);
+	}
+	if (player.hasLayer("head-4")){
+		jToConsole("NW");
+		return jCoord(-1,-1);
+	}
+	if (player.hasLayer("head-5")){
+		jToConsole("N");
+		return jCoord(0,-1);
+	}
+	if (player.hasLayer("head-6")){
+		jToConsole("NE");
+		return jCoord(-1,0);
+	}
+	if (player.hasLayer("head-7")){
+		jToConsole("E");
+		return jCoord(0,1);
+	}
+}
+

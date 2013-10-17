@@ -1,0 +1,18 @@
+//#! name = Leecher
+//#! uniq = Usernm_leecher
+
+var crate_inventory = jGetWindow("Crate").getInventories()[0];
+
+while (true){
+	while (crate_inventory.freeSlots() > 0) {
+		for (var i = 0; i < 16; i++) {
+			if ((jGetJSEquip().name(i)=="Leech")||(jGetJSEquip().name(i)=="Bloated Leech")){
+				jGetJSEquip().takeAt(i);
+				jWaitDrag();
+				var place = crate_inventory.freeSlotsCoords()
+				crate_inventory.drop(place[0]);
+			}
+		}
+		jSleep(5000);
+	}
+}

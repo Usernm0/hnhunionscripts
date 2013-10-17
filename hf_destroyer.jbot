@@ -1,0 +1,70 @@
+//#! name = HF destroyer
+//#! uniq = usernm_HF_destroyer
+
+var actionTimeout = 100;
+
+function checkInventory() {
+	if(!jHaveWindow("Inventory")) {
+		jToggleInventory();
+		while(!jHaveWindow("Inventory")){
+			jSleep(100);
+		}
+	}
+	return jGetWindow("Inventory").getInventories()[0];
+}
+
+
+function drinkWater() {
+	var inventory = checkInventory();
+	var buckets = inventory.getItems("bucket-water");
+	if (buckets.length > 0) {
+		inventory.sortItems(buckets, "amount", false);
+		var bucket = buckets[0];
+		var bucket_coord = bucket.coord();
+		if (bucket.isActual()) {
+			bucket.take();
+			jWaitDrag();
+			var flasks = inventory.getItems("waterflask", "waterskin");
+			if (flasks.length > 0) {
+				var flask = flasks[0];
+				if (flask.isActual()) {
+					flask.itemact(0);
+					jSleep(500);
+					inventory.drop(bucket_coord);
+					jWaitDrop();
+				}
+			}
+		}
+	}
+	var flasks = inventory.getItems("waterflask", "waterskin");
+	if (flasks.length > 0) {
+		var flask = flasks[0];
+		if (flask.isActual()) {
+			flask.iact();
+			if (jWaitPopup(actionTimeout)) {
+				jSelectContextMenu("Drink");
+				jWaitProgress();
+			}
+		}
+	}
+}
+
+function destroyThis(gob){
+	var name = gob.name().split('/')
+		var name2 = name[name.length-1];
+	while (gob.isActual()){
+		jSendAction("destroy");
+		while (!jIsCursor("mine")){
+			jSleep(100);
+		}
+		jDoClick(gob.getID(), 1, 0);
+		while ((jGetStamina() >35)&&(gob.isActual())){
+			jSleep(1000);
+		}
+		drinkWater();
+	}
+	jToConsole(name2+" destroyed");
+}
+
+var object_for_destroy = jSelectObject("What you will destroy, sir?");
+destroyThis(object_for_destroy);

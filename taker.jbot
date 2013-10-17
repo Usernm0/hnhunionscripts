@@ -1,0 +1,55 @@
+//#! name = Taker___2
+//#! uniq = usernm_Taker
+
+function CheckMove(coord) {
+	while (!jMyCoords().equals(coord)){
+		jSleep(100);
+	}
+	while (jIsMoving()){
+		jSleep(100);
+	}
+}
+
+function MoveNear(object){
+	var offset = object.position().sub(jMyCoords());
+	jToConsole(offset);
+}
+
+function ToggleInventory(){
+	if (!jHaveWindow("Inventory")){
+		jToggleInventory()
+	    jWaitNewWindow("Inventory")
+	}
+}
+
+var near_tree = jFindObjectByName("tree", 10);
+
+MoveNear(near_tree);
+
+/*
+var trees = jGetObjects(20, (0,0), "tree");/*
+jToConsole(trees.length)
+	for (var i = 0; i < trees.length; i++) {
+		jToConsole(trees[i].position())
+		
+	}
+		trees[i].setOverlay(false)
+jToConsole(jIsPathFree(near_tree.position().add(0,22)))*/
+/*
+if (jGetWindow("Inventory").getInventories()[0].getItems("branch")[0] == undefined){
+
+
+function PopupOption(object, option_name){
+	jDoClick(object_id, 3, 0);
+	jWaitPopup();
+	if (jHavePopupOption("Take branch") == true){
+		jSelectContextMenu("Take branch")
+			jWaitMove()
+		jWaitStartProgress()
+		while (jGetWindow("Inventory").getInventories()[0].getItems("branch")[0] == undefined){
+			jSleep(100);
+		}
+		jAbsClick(jMyCoords(), 1, 0);
+	}
+}
+/**/

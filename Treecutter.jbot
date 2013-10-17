@@ -1,0 +1,140 @@
+//#! name = Treecutter
+//#! uniq = Usernm_Treecutter
+//#! icon = gfx/invobjs/wood
+
+var radius = 30;
+var inventory = checkInventory();
+var flasks = inventory.getItems("waterflask", "waterskin", "kuksa");
+
+while (true){
+	while (jGetStamina()>50){
+		removeTree();
+	}
+	while (jGetStamina()<90){
+		if (flasks.length > 0){
+			drinkWater();
+		} else {
+			jSleep(10000);
+		}
+	}
+}
+
+function checkInventory() {
+	if(!jHaveWindow("Inventory")) {
+		jToggleInventory();
+		while(!jHaveWindow("Inventory")){
+			jSleep(100);
+		}
+	}
+	return jGetWindow("Inventory").getInventories()[0];
+}
+
+function removeStump(){
+	var stump = jFindObjectByName("stump", radius);
+	if (stump !== null){
+		jDoClick(stump.getID(), 3, 0);
+		jWaitPopup();
+		if(jHavePopupOption("Remove")){
+			jSelectContextMenu("Remove");
+			while (stump.isActual()){
+				jSleep(100);
+			}
+			while (!jIsDragging()){
+				jSleep(100);
+			}
+			if (jIsDragging()){
+				jDropObject(0);
+			}
+		}
+	}
+}
+
+function findNearestTree(radius){
+	var trees = jGetObjects(radius, jCoord(0,0), "trees");
+	var distance = radius*11;
+	var tree = null;
+	for (var i = 0; i < trees.length; i++){
+		if (trees[i].name().indexOf("log")<0){
+			if (jMyCoords().dist(trees[i].position())<distance){
+				distance = jMyCoords().dist(trees[i].position());
+				tree = trees[i];
+			}
+		}
+	}
+	return tree;
+}
+
+function removeTree(){
+	var tree = findNearestTree(radius);
+	if (tree.name().indexOf("stump")>=0){
+		removeStump();
+	} else {
+		jDoClick(tree.getID(), 3, 0);
+		jWaitPopup();
+		if(jHavePopupOption("Chop")){
+			jSelectContextMenu("Chop");
+			while (tree.isActual()){
+				jSleep(100);
+			}
+			removeStump();
+		}
+	}
+}
+
+function fillFlask() {
+	var inventory = checkInventory();
+	var buckets = inventory.getItems("bucket-water");
+	if (buckets.length > 0) {
+		inventory.sortItems(buckets, "amount", false);
+		var bucket = buckets[0];
+		var bucket_coord = bucket.coord();
+		if (bucket.isActual()) {
+			bucket.take();
+			jWaitDrag();
+			var flasks = inventory.getItems("waterflask", "waterskin", "kuksa");
+			if (flasks.length > 0) {
+				var flask = flasks[0];
+				if (flask.isActual()) {
+					flask.itemact(0);
+					if (flask.name().indexOf("Kuksa") >=0) {
+						var full = "0.3/0.3"
+					}
+					if (flask.name().indexOf("Waterflask") >=0) {
+						var full = "2.0/2.0"
+					}
+					if (flask.name().indexOf("Waterskin") >=0) {
+						var full = "3.0/3.0"
+					}
+					while ((flask.name().indexOf(full) < 0)&&(jGetDraggingItem().resName() !== "buckete")){
+						jSleep(100);
+					}
+					
+					inventory.drop(bucket_coord);
+					jWaitDrop();
+				}
+			}
+		}
+	}
+}
+
+function drinkFlask(){
+		var inventory = checkInventory();
+	var flasks = inventory.getItems("waterflask", "waterskin", "kuksa");
+	if (flasks.length > 0) {
+		var flask = flasks[0];
+		if (flask.isActual()) {
+			flask.iact();
+			if (jWaitPopup()) {
+				jSelectContextMenu("Drink");
+				while ((jGetStamina() <95)&&(flask.name().indexOf("Empty")<0)){
+					jSleep(100);
+				}
+			}
+		}
+	}
+}
+
+function drinkWater(){
+	fillFlask();
+	drinkFlask();
+}

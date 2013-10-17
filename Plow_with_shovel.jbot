@@ -1,0 +1,14 @@
+//#! name = Plow with shovel
+//#! uniq = Usernm_plow_with_showel
+//#! icon = gfx/invobjs/shovel
+
+include("Usernm_lib");
+
+while (jGetHungry()>50){
+	tile = findPlowableTile(10);
+	if (jGetStamina()<50){
+		drinkWater();
+	}
+	handsPlow(tile);
+	resetCursor();
+}

@@ -1,0 +1,17 @@
+//#! name = Taker
+//#! tooltip = Take items from ground
+//#! uniq = taker_apxproductions
+
+var selected = jSelectObject("Select object");
+var resname = jObjectName(selected);
+var obj = jFindObjectByName(resname, 15);
+while (obj != 0 && checkInventory().freeSlots() > 0) {
+	jDoClick(obj, 3, 0);
+	jWaitMove(1000);
+	jSleep(100);
+	if (jGetDraggingItem()) {
+		jDropObject(0);
+		break;
+	}
+	obj = jFindObjectByName(resname, 15);
+}

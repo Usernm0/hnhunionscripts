@@ -1,0 +1,19 @@
+//#! name = Swim helper
+//#! uniq = Usernm_Swim_helper
+
+jToConsole(jGetStamina());
+
+if (!jHaveWindow("Inventory")){
+	jToggleInventory()
+    jWaitNewWindow("Inventory")
+}
+while(true){
+if (1 == jGetTileType(0, 0)){
+	jGetWindow("Inventory").getInventories()[0].getItems("waterskin", "kuksa", "waterflask")[0].iact();
+	jWaitPopup();
+}
+if (jGetStamina() <90){
+	jSelectContextMenu("Drink");
+}
+jSleep(100);
+}

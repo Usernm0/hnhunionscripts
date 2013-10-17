@@ -1,0 +1,94 @@
+//#! name = Test2
+//#! uniq = usernm_Test2
+
+var shift_tile = jCoord(0, -1);
+var shift_coord = shift_tile.mul(11);
+var tile = jGetTileType(shift_tile);
+var abs_shift = jMyCoords().add(shift_coord);
+jToConsole("tile type = "+tile);
+
+/*
+function checkInventory() {
+	if(!jHaveWindow("Inventory")) {
+		jToggleInventory();
+		while(!jHaveWindow("Inventory")){
+			jSleep(100);
+		}
+	}
+	return jGetWindow("Inventory").getInventories()[0];
+}
+
+function checkObject(object_gob, window_name) {
+	if(!jHaveWindow(window_name)) {
+		jDoClick(object_gob.getID(), 3, 0);
+		while(!jHaveWindow(window_name)){
+			jSleep(100);
+		}
+		return jGetWindow(window_name);
+	}
+	else {
+		return jGetWindow(window_name);
+	}
+}
+
+include("Usernm_lib");
+
+var crops = jGetObjectsInRect(jMyCoords(), (-80,-10), 3, "wheat")
+		jToConsole(crops.length);
+for (var i = 0; i < crops.length; i++){
+	jToConsole(crops[i]);
+}
+
+//jFindMapObjectNearAbs(java.lang.Object coord, int radius, java.lang.String name) 
+// player = jFindObjectByName("borka", 1)
+/*var inventory = checkInventory();
+var harvest_substract_slots = 3
+var field_y = 8
+var chest = jFindObjectByName("cclosed", 10)
+var chest_position = chest.position();
+if (chest !== null){
+	var chest_iventory = checkObject(chest, "Chest")
+}
+else {
+	jExit();
+}
+jToConsole(chest_position);
+
+/*
+jSendAction("harvest");
+jWaitCursor("harvest");
+jDoClick(chest_position.add(-22,0), 3, 0);
+jToConsole(inventory.freeSlots());
+//			jWaitProgress(actionTimeout);
+
+/*
+var loom = jFindObjectByName("loom", 100)
+var loom_point = loom.position().add(13,0)
+
+jAbsClick(loom.position().add(22,0),1,0)
+jWaitMove()
+jDoClick(loom.getID(), 3, 0);
+while ((jMyCoords().x !== loom_point.x)){
+	jSleep(100);
+}
+jToConsole(jMyCoords().x)
+jToConsole(loom.position().add(13,0))
+jToConsole(jMyCoords() == loom.position().add(13,0))
+jCraftItem(1);*/
+
+//jAbsClick(jMyCoords().add(1,0),1,0)
+/*
+/*	var blob = player.blobAll()
+for(var i = 0; i < blob.length; i++){
+jToConsole(blob[0])
+}*/
+//jToConsole(jFindMapObjectNearAbs(jMyCoords()).name(), 1, "") 
+/*
+
+jSendDoubleAction("bp", "fence-cp")
+jSleep(2000)
+jToConsole(jGetDraggingItem())
+jPlace(jCoord(3,0), 1, 0);
+// jAbsInteractClick(jMyCoords.add(20,0), 1, 0)
+//jToConsole(jGetDraggingItem().currentAmount());
+*/

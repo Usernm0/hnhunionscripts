@@ -1,0 +1,85 @@
+//#! name = Water starver by Usernm
+//#! uniq = Usernm_Water_starver
+//#! icon = gfx/invobjs/kuksa
+
+// ¬озвращает JSInventory[]
+function checkInventory() {
+	if(!jHaveWindow("Inventory")) {
+		jToggleInventory();
+		while(!jHaveWindow("Inventory")){
+			jSleep(100);
+		}
+	}
+	return jGetWindow("Inventory").getInventories()[0];
+}
+
+function handsPlow(coord){
+	jSendAction("plow");
+	jWaitCursor("dig");
+	jAbsClick(coord,1,0);
+	while (jHaveHourglass() == false){
+		jSleep(100);
+	}
+	while (jHaveHourglass() == true){
+		jSleep(100);
+	}
+}
+
+function drinkWaterFromWater(){
+	checkInventory();
+	var tile = jGetTileType(jCoord(0, 0));
+	// 1 - мелководье, 0 - глубоководье
+	if 	((tile == 1)||(tile == 0)){
+		var inventory = jGetWindow("Inventory").getInventories()[0]
+		var flasks = inventory.getItems("waterflask", "waterskin", "kuksa");
+		if (flasks.length > 0) {
+		var flask = flasks[0];
+		var flask_coord = flask.coord();
+		flask.take();
+		jWaitDrag();
+		jAbsInteractClick(jMyCoords(),3,0);
+		jSleep(500);
+		inventory.drop(flask_coord);
+		jWaitDrop();
+		drinkFlask();
+	}
+	}
+}
+
+function drinkFlask(){
+		var inventory = checkInventory();
+	var flasks = inventory.getItems("waterflask", "waterskin", "kuksa");
+	if (flasks.length > 0) {
+		var flask = flasks[0];
+		if (flask.isActual()) {
+			flask.iact();
+			if (jWaitPopup()) {
+				jSelectContextMenu("Drink");
+				while ((jGetStamina() <95)&&(flask.name().indexOf("Empty")<0)){
+					jSleep(100);
+				}
+			}
+		}
+	}
+}
+
+function resetCursor() {
+	if (!jIsCursor("arw")) {
+		jAbsClick(jCoord(0, 0), 3, 0);
+		jWaitCursor("arw");
+	}
+}
+
+if (!jHaveWindow("Inventory")){
+	jToggleInventory()
+    jWaitNewWindow("Inventory")
+}
+while (jGetHungry()>50){
+	while (jGetStamina()<95){
+		drinkWaterFromWater();
+	}
+	while (jGetStamina()>30){
+		handsPlow(jMyCoords());		
+	}
+	resetCursor();
+}

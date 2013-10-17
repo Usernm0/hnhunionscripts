@@ -1,0 +1,402 @@
+//#! name = Debug bot
+//#! uniq = BLUEBELLSFARMINGBOT
+//#! icon = gfx/invobjs/herbs/chimingbluebell
+
+include("Usernm_lib");
+
+//var start_position = jFindObjectByName("hive", 10).position();
+var start_position = jMyCoords();
+jToConsole(start_position);
+
+function getTilesOnField(abs_coord){
+	var start_point = jTilify(abs_coord);
+	var tile_offset_x = (start_point.x - jTilify(jMyCoords()).x)/11;
+	var tile_offset_y = (start_point.y - jTilify(jMyCoords()).y)/11;
+	var tile_coord = jCoord(tile_offset_x, tile_offset_y);
+	var tile = jGetTileType(tile_coord);
+	if ((tile == 9)||(tile == 13)||(tile == 15)){
+		jToConsole("on field");
+		var direction = (0,-1);
+		while (true){
+			var next_tile = tile_coord.add(direction);
+				if ((tile == 9)||(tile == 13)||(tile == 15)){
+
+	}
+//	jToConsole("offset_x = "+tile_offset_x+" offset_y = "+tile_offset_y);
+//	jToConsole(jGetTileType(jCoord(tile_offset_x, tile_offset_y)));
+}
+
+getTilesOnField(start_position);
+/*
+
+while (jGetHungry()>50){
+	tile = findPlowableTile(10);
+	if (jGetStamina()<50){
+		drinkWater();
+	}
+	handsPlow(tile);
+	resetCursor();
+}
+
+//jToConsole(jGetSpeed());
+
+/*
+var timeout = 500
+var radius = 30;
+
+var Tree_names = new Array("trees/atree", 
+"trees/birch", 
+"trees/elm", 
+"trees/maple", 
+"trees/mberry", 
+"trees/willow");
+
+function removeStump(){
+		var stump = jFindObjectByName("stump", radius);
+	jDoClick(stump.getID(), 3, 0);
+	jWaitPopup();
+	if(jHavePopupOption("Remove")){
+		jSelectContextMenu("Remove");
+		while (stump.isActual()){
+			jSleep(100);
+		}
+		if (jIsDragging()){
+			jDropObject(0);
+		}
+	}
+}
+
+function findNearestTree(radius){
+	var trees = jGetObjects(radius, jCoord(0,0), "trees");
+	var distance = radius*11;
+	var tree = null;
+	for (var i = 0; i < trees.length; i++){
+		if (trees[i].name().indexOf("log")<0){
+			if (jMyCoords().dist(trees[i].position())<distance){
+				distance = jMyCoords().dist(trees[i].position());
+				tree = trees[i];
+			}
+		}
+	}
+	return tree;
+}
+
+
+function removeTree(){
+	var tree = findNearestTree(radius);
+	if (tree.name().indexOf("stump")>=0){
+		removeStump();
+	} else {
+		jDoClick(tree.getID(), 3, 0);
+		jWaitPopup();
+		if(jHavePopupOption("Chop")){
+			jSelectContextMenu("Chop");
+			while (tree.isActual()){
+				jSleep(100);
+			}
+			removeStump();
+		}
+	}
+}
+
+include("Usernm_lib");
+
+var flasks = inventory.getItems("waterflask", "waterskin", "kuksa");
+
+while (true){
+	while (jGetStamina()>50){
+		removeTree();
+	}
+	while (jGetStamina()<90){
+		if (flasks.length > 0){
+			drinkWater();
+		} else {
+			jSleep(10000);
+		}
+	}
+}
+
+/*
+var player = jFindMapObjectNearAbs(jMyCoords(), 1, "borka") 
+
+function getPlayerDirection(){
+	var player = jFindMapObjectNearAbs(jMyCoords(), 1, "borka")
+	if (player.hasLayer("head-0")){
+		jToConsole("SE");
+		return jCoord(1,1);
+	}
+	if (player.hasLayer("head-1")){
+		jToConsole("S");
+		return jCoord(0,1);
+	}
+	if (player.hasLayer("head-2")){
+		jToConsole("SW");
+		return jCoord(-1,1);
+	}
+	if (player.hasLayer("head-3")){
+		jToConsole("W");
+		return jCoord(-1,0);
+	}
+	if (player.hasLayer("head-4")){
+		jToConsole("NW");
+		return jCoord(-1,-1);
+	}
+	if (player.hasLayer("head-5")){
+		jToConsole("N");
+		return jCoord(0,-1);
+	}
+	if (player.hasLayer("head-6")){
+		jToConsole("NE");
+		return jCoord(-1,0);
+	}
+	if (player.hasLayer("head-7")){
+		jToConsole("E");
+		return jCoord(1,0);
+	}
+}
+
+function setPlayerDirection(coord){
+	resetCursor();
+	jAbsClick((jMyCoords().sub(0,-1)),1,0);
+	safeWaitMove(jMyCoords().sub(coord));
+		jToConsole("-"+jMyCoords().sub(coord));
+	jAbsClick(jMyCoords().add(coord),1,0);
+	safeWaitMove(jMyCoords().add(coord));	
+		jToConsole("+"+jMyCoords().add(coord));
+}
+
+function isTilePlowable(tiles_coord){
+	if ((jGetTileType(tiles_coord) == 9)||(jGetTileType(tiles_coord) == 11)||(jGetTileType(tiles_coord) == 13)){
+		return true;
+	} else {
+		return false;
+	}
+}
+
+var tiles_to_north = 0;
+var tiles_to_south = 0;
+var tiles_to_west = 0;
+var tiles_to_east = 0;
+
+//jToConsole("Tile type = "+jGetTileType(0,0));
+//jToConsole(isTilePlowable(jCoord(0,0)));
+
+function clockWise(coord){
+	//North
+	if (jCoord(0,-1).equals(coord)){
+		return jCoord(1,0)
+	}
+	//East
+	if (jCoord(1,0).equals(coord)){
+		return jCoord(0,1)
+	}
+	//South
+	if (jCoord(0,1).equals(coord)){
+		return jCoord(-1,0)
+	}
+	//West
+	if (jCoord(-1,0).equals(coord)){
+		return jCoord(0,-1)
+	}
+}
+// выглядит как говно, но работает.
+function fieldTilesSize(offset_in_tiles){
+	var cursor_tile = jCoord(0,0);
+	var next_tile = jCoord(0,0);
+	var clockwise = 0;
+	var direction = jCoord(0,-1);
+	var field_size = jCoord(0,0);
+	var field_start = jCoord(0,0);
+	if (isTilePlowable(jCoord(offset_in_tiles))){
+		do {
+			next_tile = cursor_tile.add(direction);
+//			jToConsole("cursor tile = "+cursor_tile);
+			if (isTilePlowable(next_tile) == true){
+				cursor_tile = next_tile;
+			} else {
+				direction = clockWise(direction);
+				clockwise = clockwise+3;
+				next_tile = jCoord(0,0);
+				field_size = field_size.add(cursor_tile.abs());
+	//			jToConsole("field_size = "+field_size);
+				// это условие полный пиздец, может потом поумнее что-то придумаю. Я не понимаю почему x > 0, но оно работает.
+				if ((direction.x > 0)||(direction.y < 0)){
+					field_start = field_start.add(cursor_tile);
+		//			jToConsole("field_start = "+field_start);
+				}
+				cursor_tile = jCoord(0,0);
+			}
+		} while ((isTilePlowable(next_tile) == true)&&(clockwise < 12))
+		field_size = field_size.add(1,1);
+		var array_coord = [field_start, field_size]
+		jToConsole("field_start = "+field_start);
+		jToConsole("field_size = "+field_size);	
+		return array_coord;
+	} else {
+		jToConsole("Tile type = "+jGetTileType(0,0));
+		jToConsole("Not on field, exit.");
+		jExit();
+	}
+ 	jMoveStep(cursor_tile);
+}
+
+//var field = fieldTilesSize(jCoord(0,0));
+//jDrawGroundRect(field[0], field[1]);
+
+//var direction = getPlayerDirection();
+//findNearestObjectOnDirection(direction);
+function findNearestObjectOnDirection(direction){
+	var cursor_tile = jCoord(0,0);
+	var next_tile = jCoord(0,0);
+	jToConsole("direction = "+direction);
+	var opposite_direction = direction.mul(-1,-1);
+	jToConsole("opposite_direction = "+opposite_direction);
+	var offset = jCoord(0,0);
+	if (direction.x == 0){
+		offset = offset.add(1,0);
+	}
+	if (direction.y == 0){
+		offset = offset.add(0,1);
+	}
+	offset = offset.add(opposite_direction);
+	offset = offset.mul(5);
+	jToConsole("offset = "+offset);
+	var far_point = direction.mul(50)
+	far_point = far_point.sub(offset);
+	jToConsole("far_point = "+far_point);
+	var objects = jGetObjectsInRect(jMyCoords().add(offset), far_point, 0, "cclosed");
+	jToConsole(objects.length);
+}
+
+function itemSquare(item){
+	return item.size().x*item.size().y;
+}
+
+var inventory = checkInventory();
+var bucket = inventory.getItems("bucket");
+jToConsole(bucket[0].size());
+var inventory_coords = inventory.freeSlotsCoords();
+jToConsole(inventory_coords[0]);
+jToConsole(inventory.size());
+jToConsole(itemSquare(bucket[0]));
+
+/*
+var trough = jFindObjectByName("trough", 10);
+	trough.interactClick(0);
+
+/*
+if (isTilePlowable(jCoord(0,0))){
+	for (var i = -1; i > -50; i--){
+		if (isTilePlowable(jCoord(0,i))){
+			tiles_to_north++
+			jToConsole("tiles_to_north = "+tiles_to_north);
+		} else {
+			break;
+		}
+	}
+	for (var i = 1; i < 50; i++){
+		if (isTilePlowable(jCoord(0,i))){
+			tiles_to_south++
+			jToConsole("tiles_to_south = "+tiles_to_south);
+		} else {
+			break;
+		}
+	}
+} else {
+	jToConsole("Tile type = "+jGetTileType(0,0));
+	jToConsole("Not on field, exit.");
+	jExit();
+}
+
+var direction = jCoord(0,1);
+
+/*
+   var offs = jCoord(10, 0);
+   var size = jCoord(1, 10);
+   var confirm = false;
+   jDrawGroundRect(offs, size);
+
+//setPlayerDirection(jCoord(0,-1));
+
+/*
+//jBuddySetHS("хуйпиздец");
+function waitKinListChanged(){
+	var start = jBuddyList().length;
+	while (jBuddyList().length == start){
+		jSleep(100);
+	}
+}
+
+players = jGetObjects(50, (0,0), "borka");
+var buddies = jBuddyList().length;
+//jToConsole(jBuddyList().length);
+
+function makeKin(gob){
+	if ((gob.isPlayer() == true)&&(gob.getKinGroup() < 1)){
+		jToConsole("kin");
+		jDoClick(gob.getID(), 3, 0);
+		jWaitPopup();
+		if (jHavePopupOption("Make kin") == true){
+		jToConsole("make");
+		 	jSelectContextMenu("Make kin");
+		 	jWaitNewWindow("Invitation", timeout);
+		 	return true;
+		} else {
+			jClosePopup();
+			return false;
+		}
+	}
+	return false;
+}
+
+function makeMemorize(gob){
+	if ((gob.isPlayer() == true)&&((gob.isKin() == false)||(gob.isInYourVillage() == false))){
+		jToConsole("memorize");
+		jDoClick(gob.getID(), 3, 0);
+		jWaitPopup();
+		if (jHavePopupOption("Memorize") == true){
+		 	jSelectContextMenu("Memorize");
+	 		waitKinListChanged();
+		 	return true;
+		} else {
+			jClosePopup();
+			return false;
+		}
+	}
+	return false;
+}
+
+
+for (var i = 0; i < players.length; i++){
+	jToConsole("distance to player = "+jMyCoords().dist(players[i].position()));
+	if ((jMyCoords().dist(players[i].position())>5)&&(jMyCoords().dist(players[i].position())<150)){
+		makeMemorize(players[i]);
+		makeKin(players[i]);
+	}
+}
+
+//jClosePopup();
+
+	//	jToConsole(players[i].hasLayer("cape-bear"));
+
+/*
+
+var start_coord = jMyCoords();
+var main_direction = jCoord(-1,0);
+var secondary_direction = jCoord(0,-1);
+var cauldron_count = 6
+
+var cauldron_shift = start_coord.add(secondary_direction.mul(cauldron_count*11));
+var cauldron_table = jFindMapObjectNearAbs(cauldron_shift, 1, "sign");
+var cauldron_table_full = 0
+var clay = jGetWindow("Inventory").getInventories()[0].getItems("clay", "clay-acre");
+
+
+
+if (jGetStamina()<90){
+	drinkWater();
+}
+if (jGetWindow("Inventory").getInventories()[0].freeSlots() !== 0){
+	DigHere();
+}
+/**/

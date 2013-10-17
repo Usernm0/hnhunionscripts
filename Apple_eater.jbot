@@ -1,0 +1,49 @@
+//#! name = Apple eater
+//#! uniq = Usernm_Apple_eater
+//#! icon = gfx/invobjs/apple
+
+include("Usernm_lib");
+	
+function oppositeDirection(object){
+	var offset = jMyCoords().sub(object.position());
+	var opposite_point = jMyCoords().add(offset)
+	jToConsole(offset);
+	jAbsClick(opposite_point,1,0);
+	safeWaitMove(opposite_point);
+}
+var pointer_1 = jSelectObject("Чего?");
+	while (true){
+		try{
+			jDoClick(pointer_1.getID(), 3, 0);
+			jWaitPopup();
+			if(jHavePopupOption("Pick apple")){
+				jSelectContextMenu("Pick apple")
+				inventoryItemsCountChange()
+				checkApplecore();
+				eatApple();
+				oppositeDirection(pointer_1);
+			}
+			else{
+				throw 1
+			}
+		}
+		catch(e){
+			jExit();
+		}
+	}
+
+	
+function eatApple(){
+	var apple = jGetWindow("Inventory").getInventories()[0].getItems("apple")
+	apple[0].iact();
+	jWaitPopup();
+	jSelectContextMenu("Eat");
+}
+
+function checkApplecore(){
+	var applecore = jGetWindow("Inventory").getInventories()[0].getItems("applecore");
+	jToConsole(applecore);
+	if (applecore.length >0){
+		applecore[0].dropSuchAll();
+	}
+}

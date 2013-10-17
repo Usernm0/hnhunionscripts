@@ -1,0 +1,31 @@
+//#! name = Lazy builder
+//#! uniq = Lazy_builder_Usernm
+
+include("moving");
+
+var start_position = jMyCoords();
+var build_window_name = "Brickwall Segment"
+var sign = jFindObjectByName("sign", 3);
+while (true){
+
+jDoClick(sign.getID(), 3, 0);
+while (!jHaveWindow(build_window_name)){
+	jSleep(100);
+}
+var build_window = jGetWindow(build_window_name);
+
+while (jHaveWindow(build_window_name)){
+	var build_count = jGetBuildValues(build_window_name, 1).split("/");
+	if (build_count[1] > 0){
+		build_window.pushButton("Build");
+	}
+	jSleep(100);
+}
+jToConsole(build_count);
+jAbsClick(start_position.add(0,-11),1,0);
+safeWaitMove(start_position.add(0,-11));
+	while (sign == null){
+		sign = jFindObjectByName("sign", 3);
+		jSleep(100);
+	}
+}

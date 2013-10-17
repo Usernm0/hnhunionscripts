@@ -1,0 +1,97 @@
+//#! name = Plow rider
+//#! uniq = Usernm_Plow_rider
+
+var plow = jFindObjectByName("plow", 10)
+
+var main_direction = jCoord(0,1);
+var shift_direction = jCoord(1,1);
+
+while (true){
+	plowLine(main_direction, shift_direction);
+}
+
+function waitPickup(){
+	var player = jFindObjectByName("borka", 1)
+	while (player.isCarrying() == false){
+		jSleep(100)
+	}
+}
+
+function waitPlace(){
+	var player = jFindObjectByName("borka", 1)
+	while (player.isCarrying() == true){
+		jSleep(100)
+	}
+}
+
+function pickup(object){
+	jSendAction("carry");
+	jWaitCursor("chi");
+	jDoClick(object.getID(), 1, 0);
+	waitPickup();
+}
+
+function safeWaitMove(coord) {
+	while (!jMyCoords().equals(coord)){
+		jSleep(100);
+	}
+	while (jIsMoving()){
+		jSleep(100);
+	}
+}
+
+function resetCursor() {
+	if (!jIsCursor("arw")) {
+		jAbsClick(jCoord(0, 0), 3, 0);
+		jWaitCursor("arw");
+	}
+}
+
+function setPlow(direction){
+	var center_tile = jTilify(jMyCoords())
+	pickup(plow);
+	jAbsClick(center_tile, 1, 0);
+	safeWaitMove(center_tile);
+	jAbsClick(center_tile.add(direction.mul(5)), 3, 0);
+	waitPlace();
+}
+
+function movePlow(direction){
+	var plow_position = jFindObjectByName("plow", 10).position()
+	jAbsClick(plow_position.add(direction), 1, 0);
+	while (!plow_position.add(direction).equals(jFindObjectByName("plow", 10).position())){
+		jSleep(100);
+	}
+}
+
+function checkDiagonal(direction){
+	if ((direction.x == 0)||(direction.y == 0)){
+		return 0;
+	}
+	return 1;
+}
+
+function chooseDirection(main_direction, shift_direction){
+	if (checkDiagonal(shift_direction) == 0){
+		movePlow(main_direction);
+		movePlow(main_direction.mul(-1));
+	}
+	if (checkDiagonal(shift_direction) == 1){
+		movePlow(main_direction.sub(shift_direction).mul(-1));
+		movePlow(main_direction);
+		movePlow(main_direction.sub(shift_direction));
+		movePlow(main_direction.mul(-1));
+	}
+}
+
+function plowLine(main_direction, shift_direction){
+	setPlow(shift_direction);
+	plow.doClick(3, 0);
+	jWaitCursor("dig");
+	chooseDirection(main_direction, shift_direction);
+	resetCursor();
+	pickup(plow);
+	var shift = jMyCoords().add(main_direction.mul(22));
+	jAbsClick(shift, 1, 0);
+	safeWaitMove(shift);
+}

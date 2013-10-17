@@ -1,0 +1,442 @@
+//#! name = Debug script
+//#! uniq = Debug_script
+include("moving");
+
+var tree = jSelectObject("tree", 10);
+jToConsole("dist = "+jMyCoords().dist(tree.position()));
+jToConsole("angle = "+jMyCoords().angle(tree.position()));
+//jToConsole("minimal = "+jMyCoords().compareTo(tree.position()));
+var offset = jMyCoords().sub(tree.position());
+jToConsole("offset = "+offset);
+
+function absCoordObjectNearestShift(object, shift){
+	var offset = jMyCoords().sub(object.position());
+	// North
+	if ((offset.y<0)&&(offset.abs().y-offset.abs().x >= 0)){
+		return object.position().add(0, -shift)
+	}
+	// South
+	if ((offset.y>0)&&(offset.abs().y-offset.abs().x >= 0)){
+		return object.position().add(0, shift)
+	}
+	// West
+	if ((offset.x<0)&&(offset.abs().y-offset.abs().x < 0)){
+		return object.position().add(-shift, 0)
+	}
+	// East
+	if ((offset.x>0)&&(offset.abs().y-offset.abs().x < 0)){
+		return object.position().add(shift, 0)
+	}
+}
+
+function absCoordObjectNearestPathFree(object, shift){
+	var offset = jMyCoords().sub(object.position());
+	var min_distance = 1000;
+	var nearest_offset;
+	// North
+	if (jIsPathFree(object.position().add(0, -shift))){
+		min_distance = jMyCoords().dist(object.position().add(0, -shift));
+		nearest_offset = object.position().add(0, -shift)
+	}
+	// South
+	if (jIsPathFree(object.position().add(0, shift))){
+		if (min_distance>jMyCoords().dist(object.position().add(0, shift))){
+			min_distance = jMyCoords().dist(object.position().add(0, shift));
+			nearest_offset = object.position().add(0, shift)
+		}
+	}
+	// West
+	if (jIsPathFree(object.position().add(-shift, 0))){
+		if (min_distance>jMyCoords().dist(object.position().add(-shift, 0))){
+			min_distance = jMyCoords().dist(object.position().add(-shift, 0));
+			nearest_offset = object.position().add(-shift, 0)
+		}
+	}
+	// East
+	if (jIsPathFree(object.position().add(shift, 0))){
+		if (min_distance>jMyCoords().dist(object.position().add(shift, 0))){
+			min_distance = jMyCoords().dist(object.position().add(shift, 0));
+			nearest_offset = object.position().add(shift, 0)
+		}
+	}
+	if (min_distance == 1000){
+		return false;
+	} else {
+		return min_distance;
+	}
+}
+jToConsole(absCoordObjectNearestPathFree(tree, 10));
+if (absCoordObjectNearestPathFree(tree, 10)){
+	jAbsClick(absCoordObjectNearestPathFree(tree, 10),1,0);
+}
+//jToConsole(nearestPointForMove(tree, 10));
+//jAbsClick(nearestPointForMove(tree, 10),1,0);
+//include("Usernm_lib");
+/*
+// Функция возвращает JSWindow указанного объекта, пытаясь подойти к нему и открыть его.
+function checkObject(object_gob, window_name) {
+	if(!jHaveWindow(window_name)) {
+		jDoClick(object_gob.getID(), 3, 0);
+		while(!jHaveWindow(window_name)){
+			jSleep(100);
+		}
+		return jGetWindow(window_name);
+	}
+	else {
+		return jGetWindow(window_name);
+	}
+}
+// Функция возвращает число литров жидкости в бочке.
+function barrelContainAmount(barrel_gob) {
+	var barrel_contain = parseFloat(checkObject(barrel_gob, "Barrel").getLabelText(1).substr(21,5), 10);
+	if (isNaN(barrel_contain)){
+		barrel_contain = 0;
+	}
+	return barrel_contain;
+}
+
+function handsPlow(coord){
+	jSendAction("plow");
+	jWaitCursor("dig");
+	jAbsClick(coord,1,0);
+	while (jHaveHourglass() == false){
+		jSleep(100);
+	}
+	while (jHaveHourglass() == true){
+		jSleep(100);
+	}
+}
+
+function drinkWaterFromWater(){
+	checkInventory();
+	var tile = jGetTileType(jCoord(0, 0));
+	// 1 - мелководье, 0 - глубоководье
+	if 	((tile == 1)||(tile == 0)){
+		var inventory = jGetWindow("Inventory").getInventories()[0]
+		var flasks = inventory.getItems("waterflask", "waterskin", "kuksa");
+		if (flasks.length > 0) {
+		var flask = flasks[0];
+		var flask_coord = flask.coord();
+		flask.take();
+		jWaitDrag();
+		jAbsInteractClick(jMyCoords(),3,0);
+		jSleep(500);
+		inventory.drop(flask_coord);
+		jWaitDrop();
+		drinkFlask();
+	}
+	}
+}
+
+function drinkFlask(){
+		var inventory = checkInventory();
+	var flasks = inventory.getItems("waterflask", "waterskin", "kuksa");
+	if (flasks.length > 0) {
+		var flask = flasks[0];
+		if (flask.isActual()) {
+			flask.iact();
+			if (jWaitPopup()) {
+				jSelectContextMenu("Drink");
+				while ((jGetStamina() <95)&&(flask.name().indexOf("Empty")<0)){
+					jSleep(100);
+				}
+			}
+		}
+	}
+}
+
+function resetCursor() {
+	if (!jIsCursor("arw")) {
+		jAbsClick(jCoord(0, 0), 3, 0);
+		jWaitCursor("arw");
+	}
+}
+
+if (!jHaveWindow("Inventory")){
+	jToggleInventory()
+    jWaitNewWindow("Inventory")
+}
+while (jGetHungry()>50){
+	while (jGetStamina()<95){
+		drinkWaterFromWater();
+	}
+	while (jGetStamina()>30){
+		handsPlow(jMyCoords());		
+	}
+	resetCursor();
+}
+
+/*
+while (jGetHungry() > 50){
+var my_coord = jMyCoords();
+var barrel = jFindObjectByName("barrel", 10);
+var well = jFindObjectByName("well", 10);
+var barrel_contain = barrelContainAmount(barrel);
+jToConsole("Barrel contain "+barrel_contain+"L of water");
+if (barrel_contain < 2){
+	jToConsole("Barrel empty");
+	jExit()
+}
+var inventory = checkInventory();
+var flasks = inventory.getItems("waterflask", "waterskin", "kuksa");
+if (flasks.length > 0) {
+var flask = flasks[0];
+var flask_coord = flask.coord();
+if (flask.currentAmount()<2){
+	if (flask.isActual()) {
+		flask.take();
+		jWaitDrag();
+		barrel.interactClick(0);
+//		while (Math.abs(jMyCoords().compareTo(barrel.position()))>5){
+			jSleep(500);
+//	}
+		inventory.drop(flask_coord);
+		jWaitDrop();
+		jAbsClick(my_coord,1,0);
+		safeWaitMove(my_coord);
+	}
+}
+}
+//jToConsole();
+var flasks = inventory.getItems("waterflask", "waterskin", "kuksa");
+var flask = flasks[0];
+if (flask.name().indexOf("Empty")<0){
+handsPlow(my_coord);
+handsPlow(my_coord);
+resetCursor();
+	drinkWater();
+}
+}
+
+
+/*
+while (jGetHungry()>50){
+	while (jGetStamina()<95){
+		drinkWater();
+	}
+	while (jGetStamina()>30){
+		handsPlow(jMyCoords());		
+	}
+	resetCursor();
+}
+/*
+	
+function chopTree(id) {
+	if (jGetStamina() < 80) drinkWater();
+	if (_pf_click(id)) {
+		jWaitPopup(actionTimeout);
+		jSelectContextMenu("Chop");
+		jWaitProgress(actionTimeout);
+	}
+	else {
+		jExit();
+	}
+}
+
+function _pf_move(coord){
+	if (!jIsPathFree(coord)) {
+		resetCursor();
+		if (jPFMove(coord) > 0) {
+			if (jWaitStartMove(1000)) {
+				waitPFEndMove();
+				while (jIsMoving() || jMyCoords().dist(coord) > 1) {
+					jSleep(100);
+				}
+				return true;
+			}
+		}
+	}
+	else{
+		resetCursor();
+		jAbsClick(coord, 1, 0);
+		if (jWaitStartMove(1000)) {
+			jWaitEndMove();
+			return true;
+		}
+	}
+	return false;
+}
+var _ignore_array = new Array();
+function iGetNearestObject(radius, name) {
+	var objs = iGetObjects(radius, jCoord(0, 0), name);
+	var min_len = 100500; var obj = 0;
+	for (var i = 0; i < objs.length; i++) {
+		if (objs[i].position().dist(jMyCoords()) < min_len) {
+			obj = objs[i];
+			min_len = objs[i].position().dist(jMyCoords());
+		}
+	}
+	return obj;
+}
+//jObjectPos(objs[i])
+function _pf_click(id) {
+	if (!jIsPathFree(id.position())) {
+		resetCursor();
+		if (jPFClick(id) > 0) {
+			if (jWaitStartMove(1000)) {
+				waitPFEndMove();
+				while (jIsMoving() || jMyCoords().dist(id.position()) > 33) {
+					jSleep(100);
+				}
+				return true;
+			}
+		}
+	} else {
+		resetCursor();
+		jDoClick(id, 3, 0);
+	}
+	return false;
+}
+
+
+function iGetObjects(radius, offset, name) {
+	var objs = jGetObjects(radius, offset, name);
+	var ret = new Array();
+	for (var i = 0; i < objs.length; i++) {
+		if (_ignore_array.indexOf(objs[i]) == -1) {
+			ret.push(objs[i]);
+		}
+	}
+	return ret;
+}
+
+function removeStump(id) {
+	if (jGetStamina() < 80) drinkWater();
+	if (_pf_click(id)) {
+		jWaitPopup(actionTimeout);
+		jSelectContextMenu("Remove");
+		jWaitProgress(actionTimeout);
+	} else {
+		jExit();
+	}
+	dropAll();
+}
+var last_coord;
+var cutRadius = 20;
+	last_coord = jMyCoords();
+	while (true) {
+		last_coord = jMyCoords();
+		
+		// Remove Stumps
+		var stump = iGetNearestObject(cutRadius, "stump");
+		while (stump != 0) {
+			removeStump(stump);
+			_pf_move(last_coord);
+			stump = iGetNearestObject(cutRadius, "stump");
+		}
+		// Chop Trees
+		var tree = iGetNearestObject(cutRadius, ["06/"]);
+		while (tree != 0) {
+			chopTree(tree);
+			_pf_move(last_coord);
+			tree = iGetNearestObject(cutRadius, ["06/"]);
+		}
+	}
+
+			/*
+
+function CheckMove(coord) {
+	while (!jMyCoords().equals(coord)){
+		jSleep(100);
+	}
+	while (jIsMoving()){
+		jSleep(100);
+	}
+}
+
+function dropAll() {
+	if (jIsDragging()) {
+		jDropObject(0);
+		jWaitDrop(actionTimeout);
+	}
+}
+
+while (true){
+	if (jGetWindow("Inventory").getInventories()[0].getItems("wood").length>0){
+		jGetWindow("Inventory").getInventories()[0].getItems("wood")[0].dropSuchAll();
+	}
+	if (jGetStamina()<95){
+		restoreStamina();
+	}
+	var object = jFindObjectByName("tree", 20);
+	if (object.name().indexOf("stump")>0){
+		var stump = object;
+		if (stump !== null) {
+			dropAll()
+			jPFMove(stump.position().add(0, -22));
+			CheckMove(stump.position().add(0, -22));
+			var stump_id = stump.getID();
+			jDoClick(stump_id, 3, 0);
+			jWaitPopup();
+			if (jHavePopupOption("Remove") == true){
+				jSelectContextMenu("Remove");
+				jWaitMove();
+				jWaitStartProgress();
+				while (jHaveHourglass()){
+					jSleep(100);
+				}
+			}
+		}
+	}
+	var object = jFindObjectByName("tree", 20);
+	if (object.name().indexOf("06")>0){
+		var tree = object;
+		if (tree !== null) {
+			dropAll()
+			jPFMove(tree.position().add(0, -22));
+			CheckMove(tree.position().add(0, -22));
+			var tree_id = tree.getID();
+			jDoClick(tree_id, 3, 0);
+			jWaitPopup();
+			if (jHavePopupOption("Chop") == true){
+				jSelectContextMenu("Chop");
+				jWaitMove();
+								jWaitStartProgress();
+				while (jHaveHourglass()){
+					jSleep(100);
+				}
+			}
+		}
+	}
+}
+
+//jToConsole("хуй"+checkClay());
+/*
+	var inventory = checkInventory();
+	var buckets = inventory.getItems("bucket-water", "buckete");
+	if (buckets.length > 0) {
+		var bucket = buckets[0];
+		var bucket_coord = bucket.coord();
+		if (bucket.isActual()) {
+			bucket.take();
+			jWaitDrag();
+		}
+	}
+	var water = jGetNearestTileCoord(20, 1);
+	var water_abs = jMyCoords().add(water.mul(11))
+ 	jAbsInteractClick(water_abs, 3, 0);
+	 		jToConsole(water_abs);
+*/
+
+/*
+function run() {
+	while (jGetHungry() > 0) {
+		jSetSpeed(3);
+		jMoveStep(jCoord(80, 0));
+		jWaitStartMove(30000);
+		while (jIsMoving()){
+			drinkWater();
+		}
+		jWaitEndMove(30000);
+		jWaitEndProgress(30000);
+		jMoveStep(jCoord(-80, 0));
+		jWaitStartMove(30000);
+		while (jIsMoving()){
+			drinkWater();
+		}
+		jWaitEndMove(30000);
+		jWaitEndProgress(30000);
+	}
+}
+run();
+//restoreStamina()*/

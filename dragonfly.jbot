@@ -1,0 +1,20 @@
+include("Usernm_lib");
+
+var inventory = checkInventory();
+
+var dragonfly = jFindObjectByName("kritter", 30);
+
+var position_1 = dragonfly.position();
+angle_1 = jMyCoords().angle(position_1)
+distance_1 = jMyCoords().dist(position_1)
+jToConsole("angle_1 = "+angle_1);
+jToConsole("distance_1 = "+distance_1);
+jSleep(100);
+var position_2 = dragonfly.position();
+var angle_2 = position_1.angle(position_2)
+var distance_2 = position_1.dist(position_2)
+jToConsole("angle_2 = "+angle_2);
+jToConsole("distance_2 = "+distance_2);
+jToConsole(PI);
+
+//jDoClick(dragonfly.getID(), 3, 0);
