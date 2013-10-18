@@ -3,12 +3,12 @@
 
 include("Usernm_lib");
 
-var crop_number = 2;
+var crop_number = 7;
 var direction_2 = jCoord(1,0);
 // harvest mode. 1 - harvest, plant, straw, fiber in tables, seeds in chests.
 // 2 - harvest, plant, seeds, product in trough.
 // 3 - harvest without planting.
-var harvest_mode = 1;
+var harvest_mode = 3;
 
 var container_name = "cclosed";
 var trough_name = "trough";
@@ -52,6 +52,13 @@ if (crop_number == 5){
 	var sign_capacity = 10;
 }
 
+// Peapod
+if (crop_number == 7){
+	var seed_name = "peapod";
+	var crop_name = "plants/peas";
+	var crop_stage = 4;
+}
+
 // Poppy
 if (crop_number == 8){
 	var seed_name = "seed-poppy";
@@ -92,22 +99,22 @@ if (crop_number == 14){
 }
 
 while (true){
-	if ((harvest_mode = 1)||(harvest_mode = 3)){
+	if ((harvest_mode == 1)||(harvest_mode == 3)){
 		var nearest_container = findNearestObject(container_name, 10);
 		var opposite_direction = getDirectionToObject(nearest_container);
 		var direction = opposite_direction.mul(-1);
 	}
-	if (harvest_mode = 2){
+	if (harvest_mode == 2){
 		var nearest_trough = findNearestObject(trough_name, 10);
 		var opposite_direction = getDirectionToObject(nearest_trough);
 		var direction = opposite_direction.mul(-1);
-	}		
-//		var position_in_tiles = Math.floor((nearest_container.position().dist(jMyCoords()))/11)-1;
+	}	/**/	
 	if (jGetStamina()<60){
 		drinkWater();
 	}
+//	var position_in_tiles = Math.floor((nearest_container.position().dist(jMyCoords()))/11)-1;
 	harvestOneLine(crop_name, field_line_size, direction, crop_stage);
-	if ((harvest_mode = 1)||(harvest_mode = 3)){
+	if ((harvest_mode == 1)||(harvest_mode == 3)){
 		if ((crop_number == 3)||(crop_number == 5)||(crop_number == 13)){
 			var last_position = jMyCoords();
 			collectProduct(product_name, direction);
@@ -120,10 +127,12 @@ while (true){
 			jSleep(200); // I dislike sleep without condition, but it stops sometimes without it.
 		}
 	}
-	if (harvest_mode = 2){
+	if (harvest_mode == 2){
 		foodTrough(nearest_trough, seed_name, product_name, field_line_size);
 	}
-	plantOneLine(seed_name, field_line_size, opposite_direction);
+	if ((harvest_mode == 1)||(harvest_mode == 2)){
+		plantOneLine(seed_name, field_line_size, opposite_direction);
+	}
 	if (inventory.getItems(seed_name).length > 0){
 		unloadSeeds(nearest_container, direction);
 	}
@@ -267,7 +276,7 @@ function harvestOneLine(crop_name, field_line_size, direction, crop_stage){
 			jAbsClick(next_tile,1,0);
 			safeWaitMove(next_tile);
 			start_point = jMyCoords();
-			position_in_tiles++;
+//			position_in_tiles++;
 		} else {
 			jToConsole("Field line end");
 			break;
