@@ -1,0 +1,117 @@
+//#! name = Sign layer
+//#! uniq = Sign_layer_Usernm
+
+include("Usernm_lib");
+
+function checkInventory() {
+	if(!jHaveWindow("Inventory")) {
+		jToggleInventory();
+		while(!jHaveWindow("Inventory")){
+			jSleep(100);
+		}
+	}
+	return jGetWindow("Inventory").getInventories()[0];
+}
+
+function getNearestSign(direction, radius){
+	var signs = jGetObjects(radius, jCoord(0,0), "sign");
+	var axis = jCoord(Math.abs(direction.y), Math.abs(direction.x));
+	var min_distance = 5000;
+	jToConsole(signs.length);
+	for (var i = 0; i<signs.length; i++){
+		if (signs[i].position().mul(axis).equals(jMyCoords().mul(axis))){
+			if ((onDirection(signs[i].position(), direction))&&(signs[i].position().dist(jMyCoords())<min_distance)){
+				min_distance = signs[i].position().dist(jMyCoords());
+				var nearest_sign = signs[i];
+			}
+		}
+	}
+	if (nearest_sign !== undefined){
+		nearest_sign.setOverlay(true);
+		return nearest_sign;
+	}
+	return -1;
+}
+
+function onDirection(coord, direction){
+//	jToConsole("xxx = "+(jMyCoords().sub(coord)).y);
+	//North
+	if ((direction.y<0)&&((jMyCoords().sub(coord)).y>0)){
+		return true;
+	}
+	//South
+	if ((direction.y>0)&&((jMyCoords().sub(coord)).y<0)){
+		return true;
+	}
+	//West
+	if ((direction.x<0)&&((jMyCoords().sub(coord)).x>0)){
+		return true;
+	}
+	//East
+	if ((direction.x>0)&&((jMyCoords().sub(coord)).x<0)){
+		return true;
+	}
+}
+
+function stepBack(direction){
+	var tile = jTilify(jMyCoords());
+	var next_tile = tile.add(direction.mul(-11));
+	jAbsClick(next_tile,1,0);
+	safeWaitMove(next_tile);
+}
+
+function placeSign(offset, name){
+	jSendDoubleAction("bp", name);
+	jSleep(1000);
+	jPlace(offset, 1, 0);
+	return true;
+}
+
+var direction = jCoord(0, -1);
+var opposite_direction = direction*(-1);
+var inventory = checkInventory();
+var material_name = "branch";
+var build_window_name = "Fence Cornerpost";
+var sign_name = "fence-cp"
+
+//jToConsole(material.length);
+//jToConsole(nearest_sign.position());
+
+
+var material = inventory.getItems(material_name);
+
+var nearest_sign = getNearestSign(direction, 10)
+
+jDoClick(nearest_sign.getID(), 3, 0);
+while (true){
+while (!jHaveWindow(build_window_name)){
+	jSleep(100);
+}
+var build_window = jGetWindow(build_window_name);
+var build_count = jGetBuildValues(build_window_name, 1).split("/")
+/*
+if (build_count[0] > 0){
+	for (var i = 0; i < build_count[0]; i++){
+		material[i].transfer();
+	}
+
+}*/
+while ((build_count[0] > 0)&&(material.length>0)){
+	material = inventory.getItems(material_name);
+	material[0].transfer();
+	build_count = jGetBuildValues(build_window_name, 1).split("/")
+}
+if (material.length == 0){
+	break;
+}
+if (build_count[0] == 0){
+	stepBack(direction);
+	placeSign(direction, sign_name);
+}
+}
+
+/*
+if (material.lenght > 0) {
+	
+}
+/**/
